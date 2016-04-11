@@ -25,16 +25,14 @@ trait PostContactTest extends BaseTckTest with Marshalling with SprayJsonSupport
     }
 
     it("Accepts proper Contact entity, returns text/plain UUID") {
-      val cr = ContactRequest("John", "Smith", "email@domain.pl", "+48123321123")
-      Post("/contacts", cr.toJson) ~> addHeader(Accept(MediaTypes.`text/plain`)) ~> domofonRoute ~> check {
+      Post("/contacts", contactRequest().toJson) ~> acceptPlain ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[UUID] shouldBe a[UUID]
       }
     }
 
     it("Accepts proper Contact entity, returns application/json with UUID") {
-      val cr = ContactRequest("John", "Smith", "email@domain.pl", "+48123321123")
-      Post("/contacts", cr.toJson) ~> addHeader(Accept(MediaTypes.`application/json`)) ~> domofonRoute ~> check {
+      Post("/contacts", contactRequest().toJson) ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[ContactCreateResponse].id should not be empty
       }
@@ -42,7 +40,7 @@ trait PostContactTest extends BaseTckTest with Marshalling with SprayJsonSupport
 
     val requiredFields = List("name", "notifyEmail", "phone")
     for (field <- requiredFields) {
-      val cr = ContactRequest("John", "Smith", "email@domain.pl", "+48123321123")
+      val cr = contactRequest()
       val json = JsObject(cr.toJson.asJsObject.fields - field)
       it(s"Fails when required field '${field}' is missing") {
         Post("/contacts", json) ~> domofonRoute ~> check {
@@ -53,7 +51,7 @@ trait PostContactTest extends BaseTckTest with Marshalling with SprayJsonSupport
     }
 
     it(s"When failing it notifies about all missing fields") {
-      val cr = ContactRequest("John", "Smith", "email@domain.pl", "+48123321123")
+      val cr = contactRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
       pendingUntilFixed {
         Post("/contacts", json) ~> domofonRoute ~> check {

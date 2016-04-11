@@ -1,6 +1,8 @@
 package domofon.tck
 
 trait DomofonTck extends BaseTckTest
-    with PostContactTest {
+    with PostContactTest
+    with GetContactsTest
+    with GetContactItemTest {
 
 }
