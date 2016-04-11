@@ -26,7 +26,7 @@ trait ExternalServer {
       req =>
         onComplete(Http().singleRequest(preprocessRequest(req))) {
           case Success(resp) => complete(resp)
-          case Failure(e) => throw e
+          case Failure(e)    => throw e
         }
     }
   }

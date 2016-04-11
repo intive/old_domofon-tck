@@ -6,6 +6,7 @@ cancelable in Global := true
 
 val akkaVersion = "2.4.3"
 val scalatestVersion = "3.0.0-M15"
+val scalacheckVersion = "1.13.0"
 
 lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariformSettings ++ Seq(
   ivyScala := ivyScala.value map {
@@ -74,9 +75,11 @@ lazy val domofon =
         "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion
-
       ),
-      libraryDependencies += "org.scalatest" %% "scalatest" % scalatestVersion ,
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % scalatestVersion,
+        "org.scalacheck" %% "scalacheck" % scalacheckVersion
+      ),
       scalacOptions += "-Xmacro-settings:conf.output.dir=" + baseDirectory.value / "src/main/resources/"
     )
 
