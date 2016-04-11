@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.entities.{ContactResponse, ContactCreateResponse, ContactRequest}
 import spray.json._
 
-trait GetContactItemTest extends BaseTckTest with Marshalling with SprayJsonSupport {
+trait GetContactItemTest extends BaseTckTest with DomofonMarshalling with SprayJsonSupport {
 
   describe("GET /contacts/{id}") {
 

@@ -23,7 +23,7 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
   def contactRequest() = ContactRequest("John", "Smith", "email@domain.pl", "+48123321123")
 
   def postContactRequest(cr: ContactRequest = contactRequest()): UUID = {
-    import Marshalling._
+    import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
     val ret = Post("/contacts", cr.toJson) ~> domofonRoute

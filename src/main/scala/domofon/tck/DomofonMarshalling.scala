@@ -1,15 +1,15 @@
 package domofon.tck
 
-import java.time.LocalDate
+import java.time.{LocalDateTime, LocalDate}
 import java.util.UUID
 
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.MediaTypes
 import akka.http.scaladsl.unmarshalling.{PredefinedFromEntityUnmarshallers, FromEntityUnmarshaller}
-import domofon.tck.entities.{Deputy, ContactResponse, ContactCreateResponse, ContactRequest}
+import domofon.tck.entities._
 import spray.json._
 
-trait Marshalling extends DefaultJsonProtocol {
+trait DomofonMarshalling extends DefaultJsonProtocol {
 
   implicit object LocalDateJsonFormat extends RootJsonFormat[LocalDate] {
 
@@ -18,6 +18,16 @@ trait Marshalling extends DefaultJsonProtocol {
     override def read(json: JsValue): LocalDate = json match {
       case JsString(s) => LocalDate.parse(s)
       case _           => throw new DeserializationException("Expected Date as String in YYYY-mm-dd format")
+    }
+  }
+
+  implicit object LocalDateTimeJsonFormat extends RootJsonFormat[LocalDateTime] {
+
+    override def write(obj: LocalDateTime) = JsString(obj.toString)
+
+    override def read(json: JsValue): LocalDateTime = json match {
+      case JsString(s) => LocalDateTime.parse(s)
+      case _           => throw new DeserializationException("Expected Date time as String in YYYY-mm-dd hh:mm:ss format")
     }
   }
 
@@ -36,6 +46,7 @@ trait Marshalling extends DefaultJsonProtocol {
   implicit val contactResponseFormat = jsonFormat11(ContactResponse.apply)
 
   implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
+  implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
 
   implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),
@@ -47,4 +58,4 @@ trait Marshalling extends DefaultJsonProtocol {
 
 }
 
-object Marshalling extends Marshalling
+object DomofonMarshalling extends DomofonMarshalling

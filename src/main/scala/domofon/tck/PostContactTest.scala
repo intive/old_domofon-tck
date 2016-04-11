@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.{MediaTypes, StatusCodes}
 import domofon.tck.entities.{ContactCreateResponse, ContactRequest}
 import spray.json._
 
-trait PostContactTest extends BaseTckTest with Marshalling with SprayJsonSupport {
+trait PostContactTest extends BaseTckTest with DomofonMarshalling with SprayJsonSupport {
 
   describe("POST /contacts") {
 

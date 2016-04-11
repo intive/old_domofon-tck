@@ -74,7 +74,8 @@ lazy val domofon =
         "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
         "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion,
-        "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion
+        "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
+        "de.heikoseeberger" %% "akka-sse" % "1.7.2"
       ),
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion,
