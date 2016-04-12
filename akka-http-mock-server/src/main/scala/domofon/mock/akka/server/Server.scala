@@ -6,6 +6,8 @@ import akka.http.scaladsl.server._
 import akka.stream._
 import domofon.mock.akka.MockServer
 
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
 
 object Server extends App with MockServer {
@@ -29,8 +31,7 @@ object Server extends App with MockServer {
   println("Press ENTER to stop mock server")
   scala.io.StdIn.readLine()
 
-  system.awaitTermination()
-
-  System.exit(0)
+  Await.result(system.terminate(), Duration.Inf)
+  sys.exit(0)
 
 }
