@@ -25,7 +25,7 @@ lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariform
   git.uncommittedSignifier := None,
   publishArtifact in Test := false,
   homepage := Some(url("https://github.com/blstream/domofon-tck")),
-  description := "TCK tests for Domofon API",
+  description := "TCK tests for Domofon API and mock server, implementation using Akka HTTP module",
   pomExtra :=
     <scm>
       <url>git@github.com:blstream/akka-viz.git</url>
@@ -64,10 +64,10 @@ lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariform
   bintrayRepository := "domofon"
 )
 
-lazy val `domofon-tck` =
-  (project in file("."))
+lazy val `tck` =
+  (project in file("tck"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, RevolverPlugin)
+    .enablePlugins(GitVersioning)
     .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq(
@@ -82,5 +82,46 @@ lazy val `domofon-tck` =
         "org.scalacheck" %% "scalacheck" % scalacheckVersion
       )
     )
+
+lazy val `tck-runner` =
+  (project in file("tck-runner"))
+    .disablePlugins(SbtScalariform)
+    .enablePlugins(GitVersioning, RevolverPlugin)
+    .settings(commonSettings)
+    .dependsOn(`tck`)
+
+lazy val `akka-http-mock` =
+  (project in file("akka-http-mock"))
+    .disablePlugins(SbtScalariform)
+    .enablePlugins(GitVersioning)
+    .settings(commonSettings)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
+        "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
+        "de.heikoseeberger" %% "akka-sse" % "1.7.2"
+      ),
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % scalatestVersion % "test"
+      )
+    ).dependsOn(`tck` % "test")
+
+lazy val `akka-http-mock-server` =
+  (project in file("akka-http-mock-server"))
+    .disablePlugins(SbtScalariform)
+    .enablePlugins(GitVersioning, RevolverPlugin)
+    .settings(commonSettings)
+    .dependsOn(`akka-http-mock`)
+
+
+lazy val root = (project in file("."))
+  .settings(commonSettings)
+  .enablePlugins(GitVersioning)
+  .settings(
+    publish := {},
+    run := run in `akka-http-mock-server`
+
+  ).aggregate(`tck`, `tck-runner`, `akka-http-mock`, `akka-http-mock-server`)
+
 
 addCommandAlias("formatAll", ";scalariformFormat;test:scalariformFormat")
