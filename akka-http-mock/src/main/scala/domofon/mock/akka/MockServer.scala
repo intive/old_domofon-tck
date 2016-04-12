@@ -22,7 +22,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
 
   private[this] lazy val publisher = system.actorOf(Props[PublisherActor])
   private[this] lazy val sseUpdatesFlow = Source.actorRef[PublisherActor.Updated.type](1, OverflowStrategy.dropNew)
-    .map(_ => ServerSentEvent(SseUpdated(LocalDateTime.now()).toJson.compactPrint))
+    .map(_ => ServerSentEvent(SseUpdated(LocalDateTime.now()).toJson.compactPrint, "updated"))
     .keepAlive(1.second, () => ServerSentEvent.heartbeat)
     .mapMaterializedValue(ref => publisher.tell(PublisherActor.Subscribe, ref))
 
