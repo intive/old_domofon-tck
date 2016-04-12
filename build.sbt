@@ -58,18 +58,18 @@ lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariform
         }
       }).transform(node).head
     }
-  }
+  },
+  bintrayCredentialsFile := file(".bintray_credentials"),
+  bintrayVcsUrl := Some("https://github.com/blstream/domofon-tck.git"),
+  bintrayRepository := "domofon"
 )
 
-
-lazy val domofon =
+lazy val `domofon-tck` =
   (project in file("."))
     .disablePlugins(SbtScalariform)
     .enablePlugins(GitVersioning, RevolverPlugin)
     .settings(commonSettings)
     .settings(
-      addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      libraryDependencies += "com.wacai" %% "config-annotation" % "0.3.4" % "compile",
       libraryDependencies ++= Seq(
         "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
         "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
@@ -80,8 +80,7 @@ lazy val domofon =
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion,
         "org.scalacheck" %% "scalacheck" % scalacheckVersion
-      ),
-      scalacOptions += "-Xmacro-settings:conf.output.dir=" + baseDirectory.value / "src/main/resources/"
+      )
     )
 
 addCommandAlias("formatAll", ";scalariformFormat;test:scalariformFormat")
