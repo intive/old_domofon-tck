@@ -2,11 +2,9 @@ package domofon.tck.runner
 
 import akka.http.scaladsl._
 import akka.http.scaladsl.model.{HttpRequest, Uri}
-import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import akka.stream.scaladsl.{Sink, Source}
 import domofon.tck.DomofonTck
-
-import scala.util.{Failure, Success}
 
 trait ExternalServer {
   self: DomofonTck =>
@@ -21,14 +19,15 @@ trait ExternalServer {
     result
   }
 
-  private[this] def proxyResult: Route = {
-    extractRequest {
-      req =>
-        onComplete(Http().singleRequest(preprocessRequest(req))) {
-          case Success(resp) => complete(resp)
-          case Failure(e)    => throw e
-        }
-    }
+  private[this] def proxyResult: Route = Route { context =>
+    val uri = domofonUri
+    val request = context.request
+    val flow = Http(system).outgoingConnection(uri.authority.host.address(), uri.authority.port)
+    val handler = Source.single(preprocessRequest(context.request))
+      .via(flow)
+      .runWith(Sink.head)
+      .flatMap(context.complete(_))
+    handler
   }
 
   def domofonRoute: Route = Route.seal(proxyResult)
