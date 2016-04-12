@@ -11,7 +11,7 @@ import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.{EventStreamMarshalling, ServerSentEvent}
 import domofon.tck.DomofonMarshalling
-import domofon.tck.entities.{ContactRequest, ContactResponse, SseUpdated}
+import domofon.tck.entities.{ContactRequest, ContactResponse, Deputy, SseUpdated}
 import spray.json._
 
 import scala.collection.mutable
@@ -70,14 +70,50 @@ trait MockServer extends Directives with SprayJsonSupport with DomofonMarshallin
         complete(sseUpdatesFlow)
       } ~ pathPrefix("contacts" / Segment) {
         uuidMaybe =>
+          //FIXME: wrap UUID validation and contact retrieval in helper directive
           validate(Try(UUID.fromString(uuidMaybe)).isSuccess, "ID must be valid UUID identifier, eg. " + UUID.randomUUID()) {
-            get {
-              val uuid = UUID.fromString(uuidMaybe)
-              contacts.get(uuid) match {
-                case None       => complete((StatusCodes.NotFound, "Contact was not found"))
-                case Some(resp) => complete(resp.toJson)
+            path("deputy") {
+              get {
+                val uuid = UUID.fromString(uuidMaybe)
+                contacts.get(uuid) match {
+                  case None => complete((StatusCodes.NotFound, "Contact was not found"))
+                  case Some(resp) => resp.deputy match {
+                    case None         => complete((StatusCodes.NotFound, "Contact has no deputy"))
+                    case Some(deputy) => complete(deputy.toJson)
+                  }
+                }
+              } ~
+                put {
+                  entity(as[Deputy]) {
+                    deputy =>
+                      val uuid = UUID.fromString(uuidMaybe)
+                      contacts.get(uuid) match {
+                        case None => complete((StatusCodes.NotFound, "Contact was not found"))
+                        case Some(resp) =>
+                          contacts.update(uuid, resp.copy(deputy = Some(deputy)))
+                          broadcastContactsUpdated
+                          complete(StatusCodes.OK)
+                      }
+                  }
+                } ~
+                delete {
+                  val uuid = UUID.fromString(uuidMaybe)
+                  contacts.get(uuid) match {
+                    case None => complete((StatusCodes.NotFound, "Contact was not found"))
+                    case Some(resp) =>
+                      contacts.update(uuid, resp.copy(deputy = None))
+                      broadcastContactsUpdated
+                      complete(StatusCodes.OK)
+                  }
+                }
+            } ~
+              get {
+                val uuid = UUID.fromString(uuidMaybe)
+                contacts.get(uuid) match {
+                  case None       => complete((StatusCodes.NotFound, "Contact was not found"))
+                  case Some(resp) => complete(resp.toJson)
+                }
               }
-            }
           }
       }
 

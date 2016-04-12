@@ -1,8 +1,7 @@
 package domofon.tck
 
 import akka.http.scaladsl._
-import akka.http.scaladsl.model.headers.Host
-import akka.http.scaladsl.model.{Uri, HttpRequest}
+import akka.http.scaladsl.model.{HttpRequest, Uri}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 

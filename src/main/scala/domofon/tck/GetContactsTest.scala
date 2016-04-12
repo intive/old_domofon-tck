@@ -3,7 +3,7 @@ package domofon.tck
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.entities.ContactResponse
-import spray.json.{JsObject, JsArray}
+import spray.json.{JsArray, JsObject}
 
 trait GetContactsTest extends BaseTckTest with DomofonMarshalling with SprayJsonSupport {
 

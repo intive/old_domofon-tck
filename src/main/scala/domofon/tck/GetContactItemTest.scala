@@ -1,10 +1,8 @@
 package domofon.tck
 
-import java.util.UUID
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.StatusCodes
-import domofon.tck.entities.{ContactResponse, ContactCreateResponse, ContactRequest}
+import domofon.tck.entities.ContactResponse
 import spray.json._
 
 trait GetContactItemTest extends BaseTckTest with DomofonMarshalling with SprayJsonSupport {

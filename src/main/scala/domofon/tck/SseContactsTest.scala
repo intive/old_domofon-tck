@@ -6,13 +6,13 @@ import akka.stream.scaladsl._
 import akka.stream.testkit.TestSubscriber.OnNext
 import akka.stream.testkit.scaladsl.TestSink
 import de.heikoseeberger.akkasse.EventStreamUnmarshalling._
-import de.heikoseeberger.akkasse.{EventStreamUnmarshalling, ServerSentEvent}
+import de.heikoseeberger.akkasse.ServerSentEvent
 import domofon.tck.entities.SseUpdated
 import org.scalatest.concurrent.ScalaFutures
+import spray.json._
 
 import scala.concurrent._
 import scala.concurrent.duration._
-import spray.json._
 
 trait SseContactsTest extends BaseTckTest with DomofonMarshalling with SprayJsonSupport with ScalaFutures {
 

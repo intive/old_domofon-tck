@@ -1,6 +1,6 @@
 package domofon.mock
 
-import akka.actor.{Terminated, ActorRef, ActorLogging, Actor}
+import akka.actor.{Actor, ActorLogging, ActorRef, Terminated}
 
 import scala.collection.immutable
 

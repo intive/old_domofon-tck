@@ -20,7 +20,7 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   def acceptJson = addHeader(Accept(MediaTypes.`application/json`))
 
-  def contactRequest() = ContactRequest("John", "Smith", "email@domain.pl", "+48123321123")
+  def contactRequest() = ContactRequest("John Smith", "Company Ltd.", "email@domain.pl", "+48123321123")
 
   def postContactRequest(cr: ContactRequest = contactRequest()): UUID = {
     import DomofonMarshalling._

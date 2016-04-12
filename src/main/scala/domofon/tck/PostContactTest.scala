@@ -3,9 +3,8 @@ package domofon.tck
 import java.util.UUID
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.headers.Accept
-import akka.http.scaladsl.model.{MediaTypes, StatusCodes}
-import domofon.tck.entities.{ContactCreateResponse, ContactRequest}
+import akka.http.scaladsl.model.StatusCodes
+import domofon.tck.entities.ContactCreateResponse
 import spray.json._
 
 trait PostContactTest extends BaseTckTest with DomofonMarshalling with SprayJsonSupport {
