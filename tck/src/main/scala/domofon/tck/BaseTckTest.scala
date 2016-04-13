@@ -19,6 +19,8 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   implicit val routeTestTimeout = RouteTestTimeout(new DurationInt(30).second)
 
+  val nonExistentUuid = UUID.fromString("00000000-0000-0000-0000-420000000000")
+
   def domofonRoute: Route
 
   def acceptPlain = addHeader(Accept(MediaTypes.`text/plain`))
@@ -31,7 +33,7 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
-    var uuid: UUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
+    var uuid: UUID = nonExistentUuid
     val ret = Post("/contacts", cr.toJson) ~> domofonRoute ~> check {
       status shouldBe StatusCodes.OK
       uuid = UUID.fromString(responseAs[String])
