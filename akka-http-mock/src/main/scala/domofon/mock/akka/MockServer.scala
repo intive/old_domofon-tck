@@ -9,18 +9,22 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.client.RequestBuilding._
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.{EventStreamMarshalling, ServerSentEvent}
 import spray.json._
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 trait MockServer extends Directives with SprayJsonSupport with MockMarshallers with EventStreamMarshalling {
 
   implicit def system: ActorSystem
+
+  private[this] implicit def executionContext: ExecutionContext = system.dispatcher
 
   implicit def materializer: Materializer
 
@@ -54,10 +58,16 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
 
         path("domofon.yaml") {
           get {
-            onComplete(Http().singleRequest(Get("https://raw.githubusercontent.com/blstream/domofon-api/gh-pages/domofon.yaml"))) {
-              case Success(r) => complete(r)
-              case Failure(f) => throw f
-            }
+            onComplete(
+              Http().singleRequest(
+                Get("https://raw.githubusercontent.com/blstream/domofon-api/gh-pages/domofon.yaml")
+              ).flatMap {
+                  req => Unmarshal(req).to[String]
+                }
+            ) {
+                case Success(r) => complete(r)
+                case Failure(f) => throw f
+              }
           }
         } ~ path("contacts") {
           get {
