@@ -22,7 +22,7 @@ First, install coursier using project documentation: https://github.com/alexarch
 When coursier is installed, you can execute `tck-runner` using:
 
   ```
-  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:tck-runner_2.11:0.2.0" http://localhost:8080/
+  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:tck-runner_2.11:0.2.0" -- -- http://localhost:8080/
   ```
 
 **TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion) 
@@ -65,7 +65,7 @@ First, install coursier using project documentation: https://github.com/alexarch
 When coursier is installed, you can launch `akka-http-mock-server` using:
 
   ```
-  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:akka-http-mock-server_2.11:0.2.0"
+  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:akka-http-mock-server_2.11:0.2.0" -- -- --listen http://0.0.0.0:8080
   ```
 
 By default it will start mock server on http://0.0.0.0:8080/ so it will be publicly available, keep that in mind.  
