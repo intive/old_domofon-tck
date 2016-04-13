@@ -1,17 +1,16 @@
-package com.blstream
 package domofon
 
 import org.scalacheck._
 
 trait Generators {
 
-  import model._
+  import mock.akka._
 
   def generateContact: ContactRequest = sample(for {
     _name <- name
     _notifyEmail <- email
     _phone <- phone
-    _company <- Gen.some(company)
+    _company <- company
     _adminEmail <- Gen.some(email)
   } yield ContactRequest(
     name = _name,
@@ -21,10 +20,10 @@ trait Generators {
     adminEmail = _adminEmail
   ))
 
-  private def name: Gen[Name] = arbitraryString(10, 20) map (new Name(_))
-  private def email: Gen[Email] = arbitraryString(7, 15) map (e => s"$e@example.com") map (e => new Email(e))
-  private def company: Gen[Company] = arbitraryCompany map (new Company(_))
-  private def phone: Gen[Phone] = arbitraryPhone
+  private def name = arbitraryString(10, 20)
+  private def email = arbitraryString(7, 15) map (e => s"$e@example.com")
+  private def company = arbitraryCompany
+  private def phone = arbitraryPhone
 
   private def sample[T](t: Gen[T]): T = t.sample match {
     case Some(x) => x
