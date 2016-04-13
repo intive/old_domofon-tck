@@ -46,6 +46,7 @@ trait MockMarshallers extends DefaultJsonProtocol {
 
   implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
   implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
+  implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
 
   implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),

@@ -22,7 +22,7 @@ First, install coursier using project documentation: https://github.com/alexarch
 When coursier is installed, you can execute `tck-runner` using:
 
   ```
-  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:tck-runner_2.11:0.1.0-15-g540a15e" http://localhost:8080/
+  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:tck-runner_2.11:0.1.0-15-g540a15e" -- -- http://localhost:8080/
   ```
 
 **TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion) 

@@ -10,6 +10,7 @@ import domofon.mock.akka.MockServer
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
+import ch.megard.akka.http.cors.CorsDirectives._
 
 object Server extends App {
 
@@ -45,11 +46,28 @@ object Server extends App {
 
       import system.dispatcher
 
-      val mockServer = MockServer(system)
+      val mockServer = MockServer(system, materializer)
 
-      Http().bindAndHandle(mockServer.domofonRoute, host, port).onComplete {
+      val routes: Route = cors() {
+        mockServer.domofonRoute
+      }
+
+      Http().bindAndHandle(routes, host, port).onComplete {
         case Success(binding) =>
-          println(s"Listening on http:/${binding.localAddress}")
+          println(s"Listening on ${binding.localAddress}")
+          val hostname = if (binding.localAddress.getHostName.matches("^[0:\\.]*$")) {
+            "localhost"
+          } else {
+            binding.localAddress.getHostName
+          }
+          val serverUrl = s"http://${hostname}:${binding.localAddress.getPort}"
+
+          println(s"Open $serverUrl")
+          println()
+          println("To use Swagger UI:")
+          println(s"http://blstream.github.io/domofon-api/#swagger=${serverUrl}/domofon.yaml")
+          println()
+
         case Failure(e) =>
           println("Unable to bind, exiting...")
           e.printStackTrace()

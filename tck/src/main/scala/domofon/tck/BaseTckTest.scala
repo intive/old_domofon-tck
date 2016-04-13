@@ -9,7 +9,7 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.testkit._
-import domofon.tck.entities.ContactRequest
+import domofon.tck.entities.PostContact
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.Await
@@ -27,9 +27,9 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   def acceptJson = addHeader(Accept(MediaTypes.`application/json`))
 
-  def contactRequest() = ContactRequest("John Smith", "Company Ltd.", "email@domain.pl", "+48123321123")
+  def contactRequest() = PostContact("John Smith", "Company Ltd.", "email@domain.pl", "+48123321123")
 
-  def postContactRequest(cr: ContactRequest = contactRequest()): UUID = {
+  def postContactRequest(cr: PostContact = contactRequest()): UUID = {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._

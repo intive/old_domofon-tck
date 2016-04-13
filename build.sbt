@@ -112,7 +112,8 @@ lazy val `akka-http-mock-server` =
     .enablePlugins(GitVersioning, RevolverPlugin)
     .settings(commonSettings)
     .settings(
-      libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0"
+      libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0",
+      libraryDependencies += "ch.megard" %% "akka-http-cors" % "0.1.1"
     )
     .dependsOn(`akka-http-mock`)
 
