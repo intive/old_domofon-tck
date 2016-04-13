@@ -7,9 +7,12 @@ trait Scenario {
 
   self: Feeders =>
 
-  val pathContacts = "/contacts"
-  val pathContact: String => String = uuid => s"/contacts/$uuid"
-  val pathDeputy: String => String = uuid => s"/contacts/$uuid/deputy"
+  object Paths {
+    val contacts = "/contacts"
+    val contact: String => String = uuid => s"/contacts/$uuid"
+    val deputy: String => String = uuid => s"/contacts/$uuid/deputy"
+    val importance: String => String = uuid => s"/contacts/$uuid/important"
+  }
 
   val headers = Map(
     "Content-Type" -> """application/json"""
@@ -17,7 +20,7 @@ trait Scenario {
 
   val createContact = exec(
     http("create-contact")
-      .post(pathContacts)
+      .post(Paths.contacts)
       .headers(headers + ("Accept" -> """application/json"""))
       .body(StringBody(i("@{contact}")))
       .check(status.is(200))
@@ -26,47 +29,81 @@ trait Scenario {
 
   val getContacts = exec(
     http("get-all-contacts")
-      .get(pathContacts)
+      .get(Paths.contacts)
       .check(status.is(200))
   )
 
   val getContact = exec(
     http("get-contact")
-      .get(pathContact(i("@{response_id}")))
+      .get(Paths.contact(i("@{response_id}")))
       .headers(headers)
       .check(status.is(200))
   )
 
   val removeContact = exec(
     http("remove-contact")
-      .delete(pathContact(i("@{response_id}")))
+      .delete(Paths.contact(i("@{response_id}")))
       .headers(headers)
       .check(status.is(200))
   )
 
   val getDeputy = exec(
     http("get-deputy")
-      .get(pathDeputy(i("@{response_id}")))
+      .get(Paths.deputy(i("@{response_id}")))
       .headers(headers)
       .check(status.is(200))
   )
 
   val addDeputy = exec(
     http("get-deputy")
-      .put(pathDeputy(i("@{response_id}")))
+      .put(Paths.deputy(i("@{response_id}")))
       .body(StringBody(i("@{deputy}")))
       .headers(headers)
       .check(status.is(200))
   )
 
-  val scn = scenario("Create Contact")
+  val noDeputy = exec(
+    http("get-deputy")
+      .get(Paths.deputy(i("@{response_id}")))
+      .headers(headers)
+      .check(status.is(404))
+  )
+
+  val removeDeputy = exec(
+    http("remove-deputy")
+      .delete(Paths.deputy(i("@{response_id}")))
+      .headers(headers)
+      .check(status.is(200))
+  )
+
+  val changeImportance = exec(
+    http("make-important")
+      .put(Paths.importance(i("@{response_id}")))
+      .headers(headers)
+      .body(StringBody(i("@{importance}")))
+      .check(status.is(200))
+  )
+
+  val `create-contact-scenario` = scenario("Create Contact Scenario")
     .feed(contactFeeder)
     .exec(
       createContact,
       getContact,
       addDeputy,
-      getDeputy
+      getDeputy,
+      removeDeputy,
+      noDeputy,
+      removeContact
     )
 
+  val `update-contact-scenario` = scenario("Update Contact Scenario")
+    .feed(contactFeeder)
+    .exec(
+      createContact,
+      addDeputy,
+      changeImportance,
+      removeDeputy,
+      changeImportance
+    )
   private def i(v: => String): String = v.replaceAllLiterally("@", "$")
 }

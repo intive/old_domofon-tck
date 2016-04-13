@@ -32,6 +32,8 @@ trait Generators {
     company = _company
   ))
 
+  def generateImportance: String = ???
+
   private def name = arbitraryString(10, 20)
   private def email = arbitraryString(7, 15) map (e => s"$e@example.com")
   private def company = arbitraryCompany
