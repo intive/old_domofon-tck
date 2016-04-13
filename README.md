@@ -68,6 +68,11 @@ When coursier is installed, you can launch `akka-http-mock-server` using:
   coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:akka-http-mock-server_2.11:0.1.0-15-g540a15e"
   ```
 
-It will start mock server on http://localhost:8080/
+By default it will start mock server on http://0.0.0.0:8080/ so it will be publicly available, keep that in mind.  
+  
+You can use `--listen http://127.0.0.1:12345` option to override port on which mock should be running.
+
+There might be more configuration options available in the future, you can check them using `--help` option.
+
 
 **TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
