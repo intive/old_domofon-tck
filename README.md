@@ -22,10 +22,10 @@ First, install coursier using project documentation: https://github.com/alexarch
 When coursier is installed, you can execute `tck-runner` using:
 
   ```
-  coursier launch -r central -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:tck-runner_2.11:0.1.0-15-g540a15e" http://localhost:8080/
+  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:tck-runner_2.11:0.1.0-15-g540a15e" http://localhost:8080/
   ```
 
-TIP: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion) 
+**TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion) 
  
 ### Use `akka-http` template project
  
@@ -41,7 +41,7 @@ All tests use `ScalatestRouteTest` from akka-http testkit. To get started add SB
   libraryDependencies += "com.blstream.domofon" %% "tck" %% "0.1.0-15-g540a15e" % "test"
   ```
   
-TIP: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
+**TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
  
 Next, create new test:
  
@@ -54,4 +54,20 @@ Next, create new test:
    ```
  
 After that all test cases will be executed against your implementation
+
+
+## Mock server
+
+Simplest way to get started is downloading all dependencies using `coursier`.
  
+First, install coursier using project documentation: https://github.com/alexarchambault/coursier#command-line
+
+When coursier is installed, you can launch `akka-http-mock-server` using:
+
+  ```
+  coursier launch -r https://dl.bintray.com/lustefaniak/domofon/ "com.blstream.domofon:akka-http-mock-server_2.11:0.1.0-15-g540a15e"
+  ```
+
+It will start mock server on http://localhost:8080/
+
+**TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
