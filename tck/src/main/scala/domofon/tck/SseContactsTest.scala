@@ -7,7 +7,7 @@ import akka.stream.testkit.TestSubscriber.OnNext
 import akka.stream.testkit.scaladsl.TestSink
 import de.heikoseeberger.akkasse.EventStreamUnmarshalling._
 import de.heikoseeberger.akkasse.ServerSentEvent
-import domofon.tck.entities.SseUpdated
+import domofon.tck.entities.Updated
 import org.scalatest.concurrent.ScalaFutures
 import spray.json._
 
@@ -36,7 +36,7 @@ trait SseContactsTest extends BaseTckTest with ScalaFutures {
           }
           val update = probe.requestNext()
           probe.cancel()
-          update.data.parseJson.convertTo[SseUpdated] shouldBe a[SseUpdated]
+          update.data.parseJson.convertTo[Updated] shouldBe a[Updated]
       }
     }
 

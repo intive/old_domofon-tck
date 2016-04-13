@@ -42,11 +42,12 @@ trait DomofonMarshalling extends DefaultJsonProtocol {
   }
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
-  implicit val contactRequestFormat = jsonFormat7(ContactRequest.apply)
-  implicit val contactResponseFormat = jsonFormat11(ContactResponse.apply)
+  implicit val contactRequestFormat = jsonFormat7(PostContact.apply)
+  implicit val contactResponseFormat = jsonFormat11(GetContact.apply)
 
-  implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
-  implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
+  implicit val contactCreateResponseFormat = jsonFormat1(PostContactResponse.apply)
+  implicit val sseUpdatedFormat = jsonFormat1(Updated.apply)
+  implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
 
   implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),

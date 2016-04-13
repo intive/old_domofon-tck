@@ -45,7 +45,7 @@ object Server extends App {
 
       import system.dispatcher
 
-      val mockServer = MockServer(system)
+      val mockServer = MockServer(system, materializer)
 
       Http().bindAndHandle(mockServer.domofonRoute, host, port).onComplete {
         case Success(binding) =>
