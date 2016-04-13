@@ -45,7 +45,7 @@ trait PostContactTest extends BaseTckTest {
       it(s"Fails when required field '${field}' is missing") {
         Post("/contacts", json) ~> acceptJson ~> domofonRoute ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[JsObject].fields should contain("fields" -> JsArray(JsString(field)))
+          responseAs[String].parseJson.asJsObject.fields should contain("fields" -> JsArray(JsString(field)))
         }
       }
     }
