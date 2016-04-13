@@ -1,6 +1,6 @@
 package domofon.tck.entities
 
-case class ContactRequest(
+case class PostContact(
   name: String,
   company: String,
   notifyEmail: String,

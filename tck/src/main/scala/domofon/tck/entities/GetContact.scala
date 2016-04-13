@@ -3,7 +3,7 @@ package domofon.tck.entities
 import java.time.LocalDate
 import java.util.UUID
 
-case class ContactResponse(
+case class GetContact(
   id: UUID,
   name: String,
   company: String,
@@ -17,10 +17,10 @@ case class ContactResponse(
   deputy: Option[Deputy] = None
 )
 
-case object ContactResponse {
+case object GetContact {
 
-  def from(id: UUID, req: ContactRequest): ContactResponse = {
-    ContactResponse(
+  def from(id: UUID, req: PostContact): GetContact = {
+    GetContact(
       id,
       req.name,
       req.company,
