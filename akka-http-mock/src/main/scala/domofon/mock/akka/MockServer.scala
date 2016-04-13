@@ -51,6 +51,21 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
       )
   }.result()
 
+  private[this] def takeContactFromPath: Directive1[ContactResponse] = {
+    pathPrefix(Segment).flatMap {
+      uuidMaybe =>
+        Try(UUID.fromString(uuidMaybe)) match {
+          case Success(uuid) =>
+            contacts.get(uuid) match {
+              case None       => complete((StatusCodes.NotFound, "Contact was not found"))
+              case Some(resp) => provide(resp)
+            }
+          case Failure(e) =>
+            reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
+        }
+    }
+  }
+
   private[this] lazy val routes: Route = handleRejections(rejectionHandler) {
     extractRequest {
       req =>
@@ -86,80 +101,51 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       reject(MissingRequiredFieldsRejection("Contact requests has wrong structure", Some(ex)))
                   }
               }
-
             }
         } ~
           path("contacts" / "sse") {
             complete(sseUpdatesFlow)
-          } ~ pathPrefix("contacts" / Segment) {
-            uuidMaybe =>
-              //FIXME: wrap UUID validation and contact retrieval in helper directive
-              validate(Try(UUID.fromString(uuidMaybe)).isSuccess, "ID must be valid UUID identifier, eg. " + UUID.randomUUID()) {
+          } ~ pathPrefix("contacts") {
+            takeContactFromPath {
+              contact =>
                 path("deputy") {
                   get {
-                    val uuid = UUID.fromString(uuidMaybe)
-                    contacts.get(uuid) match {
-                      case None => complete((StatusCodes.NotFound, "Contact was not found"))
-                      case Some(resp) => resp.deputy match {
-                        case None         => complete((StatusCodes.NotFound, "Contact has no deputy"))
-                        case Some(deputy) => complete(deputy.toJson)
-                      }
+                    contact.deputy match {
+                      case None         => complete((StatusCodes.NotFound, "Contact has no deputy"))
+                      case Some(deputy) => complete(deputy.toJson)
                     }
                   } ~
                     put {
                       entity(as[Deputy]) {
                         deputy =>
-                          val uuid = UUID.fromString(uuidMaybe)
-                          contacts.get(uuid) match {
-                            case None => complete((StatusCodes.NotFound, "Contact was not found"))
-                            case Some(resp) =>
-                              contacts.update(uuid, resp.copy(deputy = Some(deputy)))
-                              broadcastContactsUpdated
-                              complete(StatusCodes.OK)
-                          }
-                      }
-                    } ~
-                    delete {
-                      val uuid = UUID.fromString(uuidMaybe)
-                      contacts.get(uuid) match {
-                        case None => complete((StatusCodes.NotFound, "Contact was not found"))
-                        case Some(resp) =>
-                          contacts.update(uuid, resp.copy(deputy = None))
+                          contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
                           broadcastContactsUpdated
                           complete(StatusCodes.OK)
                       }
+                    } ~
+                    delete {
+                      contacts.update(contact.id, contact.copy(deputy = None))
+                      broadcastContactsUpdated
+                      complete(StatusCodes.OK)
                     }
                 } ~
                   path("important") {
                     get {
-                      val uuid = UUID.fromString(uuidMaybe)
-                      contacts.get(uuid) match {
-                        case None       => complete((StatusCodes.NotFound, "Contact was not found"))
-                        case Some(resp) => complete(IsImportant(resp.isImportant).toJson)
-                      }
+                      complete(IsImportant(contact.isImportant).toJson)
                     } ~
                       put {
                         entity(as[IsImportant]) {
                           imp =>
-                            val uuid = UUID.fromString(uuidMaybe)
-                            contacts.get(uuid) match {
-                              case None => complete((StatusCodes.NotFound, "Contact was not found"))
-                              case Some(resp) =>
-                                contacts.update(uuid, resp.copy(isImportant = imp.isImportant))
-                                broadcastContactsUpdated
-                                complete(StatusCodes.OK)
-                            }
+                            contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
+                            broadcastContactsUpdated
+                            complete(StatusCodes.OK)
                         }
                       }
                   } ~
                   get {
-                    val uuid = UUID.fromString(uuidMaybe)
-                    contacts.get(uuid) match {
-                      case None       => complete((StatusCodes.NotFound, "Contact was not found"))
-                      case Some(resp) => complete(resp.toJson)
-                    }
+                    complete(contact)
                   }
-              }
+            }
           } ~ pathEndOrSingleSlash {
             get {
               complete("Mock Server is running, check documentation available at: http://blstream.github.io/domofon-api/")
