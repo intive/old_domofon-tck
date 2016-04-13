@@ -123,3 +123,12 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
 
 }
 
+case object MockServer {
+
+  def apply(actorSystem: ActorSystem): MockServer = {
+    new MockServer {
+      override implicit def system: ActorSystem = actorSystem
+    }
+  }
+
+}
