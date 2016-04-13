@@ -92,8 +92,7 @@ trait Scenario {
       addDeputy,
       getDeputy,
       removeDeputy,
-      noDeputy,
-      removeContact
+      noDeputy
     )
 
   val `update-contact-scenario` = scenario("Update Contact Scenario")
@@ -101,9 +100,7 @@ trait Scenario {
     .exec(
       createContact,
       addDeputy,
-      changeImportance,
-      removeDeputy,
-      changeImportance
+      removeDeputy
     )
   private def i(v: => String): String = v.replaceAllLiterally("@", "$")
 }
