@@ -23,6 +23,13 @@ trait ChangeContactDeputyTest extends BaseTckTest {
   }
 
   describe("GET /contacts/{id}/deputy") {
+
+    it("When contact doesn't exist it also returns 404") {
+      Get(deputyUrl(nonExistentUuid)) ~> acceptJson ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.NotFound
+      }
+    }
+
     it("By default Contact has no deputy") {
       val uuid = postContactRequest()
 
@@ -33,6 +40,12 @@ trait ChangeContactDeputyTest extends BaseTckTest {
   }
 
   describe("PUT /contacts/{id}/deputy") {
+
+    it("When contact doesn't exist it is impossible to create deputy") {
+      putContactDeputy(nonExistentUuid) ~> check {
+        status shouldBe StatusCodes.NotFound
+      }
+    }
 
     it("It is possible to create deputy with PUT /contacts/{id}/deputy") {
       val uuid = postContactRequest()
@@ -94,6 +107,12 @@ trait ChangeContactDeputyTest extends BaseTckTest {
   }
 
   describe("DELETE /contacts/{id}/deputy") {
+
+    it("When contact doesn't exist it is impossible to delete deputy") {
+      Delete(deputyUrl(nonExistentUuid)) ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.NotFound
+      }
+    }
 
     it("Allows deleting even if there is no deputy set ") {
       val uuid = postContactRequest()
