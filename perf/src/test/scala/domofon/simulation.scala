@@ -5,8 +5,12 @@ import io.gatling.http.Predef._
 
 import io.gatling.core.scenario.Simulation
 
-object SimulationConfig {
-  val httpConf = http.baseURL("http://127.0.0.1:8080")
+trait Config {
+  lazy val uri = System.getenv("DEST_URI")
+}
+
+object SimulationConfig extends Config {
+  val httpConf = http.baseURL(s"http://$uri")
   val injection = atOnceUsers(1)
 }
 
