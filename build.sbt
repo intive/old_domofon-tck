@@ -127,7 +127,8 @@ lazy val performance =
         "io.gatling" % "gatling-test-framework" % "2.1.7" % "test",
         "org.scalacheck" %% "scalacheck" % "1.13.0" % "test"
       )
-  )
+    )
+    .dependsOn(`akka-http-mock`)
 
 lazy val root = (project in file("."))
   .settings(commonSettings)
