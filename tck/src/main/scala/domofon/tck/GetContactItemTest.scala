@@ -10,6 +10,12 @@ trait GetContactItemTest extends BaseTckTest {
 
   describe("GET /contacts/{id}") {
 
+    it("When contact doesn't exist 404 is returned") {
+      Get(s"/contacts/${nonExistentUuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.NotFound
+      }
+    }
+
     it("Requesting ID not in UUID format fails") {
       val notUuid = "this-is-not-uuid"
 
