@@ -111,6 +111,9 @@ lazy val `akka-http-mock-server` =
     .disablePlugins(SbtScalariform)
     .enablePlugins(GitVersioning, RevolverPlugin)
     .settings(commonSettings)
+    .settings(
+      libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0"
+    )
     .dependsOn(`akka-http-mock`)
 
 lazy val performance =
