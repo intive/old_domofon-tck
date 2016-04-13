@@ -64,7 +64,6 @@ trait Scenario {
     .exec(
       createContact,
       getContact,
-      getDeputy,
       addDeputy,
       getDeputy
     )
