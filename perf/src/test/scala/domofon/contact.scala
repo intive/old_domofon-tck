@@ -1,4 +1,3 @@
-package com.blstream
 package domofon
 
 import io.gatling.core.Predef._
@@ -9,9 +8,11 @@ trait Contacts {
   self: Feeders =>
 
   val path = "/contacts"
-  val uuid = "e0e0d673-0c38-4e55-9e1b-00df09c38ae2"
 
-  val headers = Map("Content-Type" -> """application/json""")
+  val headers = Map(
+    "Content-Type" -> """application/json""",
+    "Accept" -> """application/json"""
+  )
 
   val createContact = exec(
     http("create-contact")
@@ -19,6 +20,7 @@ trait Contacts {
       .headers(headers)
       .body(StringBody(s"@{contact}".replaceAllLiterally("@", "$")))
       .check(status.is(200))
+      .check(jsonPath("$.id").saveAs("response-id"))
   )
 
   val getContacts = exec(
@@ -29,13 +31,15 @@ trait Contacts {
 
   val getContact = exec(
     http("get-contact")
-      .get(s"$path/$uuid")
+      .get(s"$path/@{response-id}".replaceAllLiterally("@", "$"))
+      .headers(headers)
       .check(status.is(200))
   )
 
   val removeContact = exec(
     http("remove-contact")
-      .delete(s"$path/$uuid")
+      .delete(s"$path/@{response-id}".replaceAllLiterally("@", "$"))
+      .headers(headers)
       .check(status.is(200))
   )
 

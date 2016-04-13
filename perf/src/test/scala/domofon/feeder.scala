@@ -1,8 +1,11 @@
-package com.blstream
 package domofon
 
-trait Feeders {
+import akka.http.scaladsl.marshallers.sprayjson._
+import spray.json._
+import mock.akka.MockMarshallers
+
+trait Feeders extends SprayJsonSupport with MockMarshallers {
   self: Generators =>
 
-  def contactFeeder = Iterator.continually(Map("contact" -> generateContact.toString))
+  def contactFeeder = Iterator.continually(Map("contact" -> generateContact.toJson.prettyPrint))
 }
