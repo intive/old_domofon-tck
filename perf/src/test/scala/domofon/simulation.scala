@@ -12,7 +12,7 @@ object SimulationConfig {
 
 class ContactSimulation
     extends Simulation
-    with Contacts
+    with Scenario
     with Feeders
     with Generators {
 
