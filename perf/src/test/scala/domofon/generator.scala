@@ -32,7 +32,9 @@ trait Generators {
     company = _company
   ))
 
-  def generateImportance: String = ???
+  def generateImportance: IsImportant = sample(for {
+    _importance <- arbitraryBoolean
+  } yield IsImportant(_importance))
 
   private def name = arbitraryString(10, 20)
   private def email = arbitraryString(7, 15) map (e => s"$e@example.com")
@@ -43,6 +45,8 @@ trait Generators {
     case Some(x) => x
     case None    => sample(t)
   }
+
+  private def arbitraryBoolean = Gen.oneOf(true, false)
 
   private def arbitraryString(min: Int, max: Int) = for {
     l <- Gen.choose(min, max)

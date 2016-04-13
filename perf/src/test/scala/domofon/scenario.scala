@@ -100,7 +100,8 @@ trait Scenario {
     .exec(
       createContact,
       addDeputy,
-      removeDeputy
+      removeDeputy,
+      changeImportance
     )
   private def i(v: => String): String = v.replaceAllLiterally("@", "$")
 }

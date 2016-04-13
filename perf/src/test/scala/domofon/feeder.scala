@@ -10,8 +10,8 @@ trait Feeders extends SprayJsonSupport with MockMarshallers {
   def contactFeeder = Iterator.continually(
     Map(
       "contact" -> generateContact.toJson.prettyPrint,
-      "deputy" -> generateDeputy.toJson.prettyPrint
-    //,"importance" -> generateImportance.toJson.prettyPrint
+      "deputy" -> generateDeputy.toJson.prettyPrint,
+      "importance" -> generateImportance.toJson.prettyPrint
     )
   )
 }
