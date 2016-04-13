@@ -10,7 +10,7 @@ import domofon.mock.akka.MockServer
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
-
+import ch.megard.akka.http.cors.CorsDirectives._
 object Server extends App {
 
   case class Config(listen: Uri = Uri("http://0.0.0.0:8080/"))
@@ -47,7 +47,11 @@ object Server extends App {
 
       val mockServer = MockServer(system, materializer)
 
-      Http().bindAndHandle(mockServer.domofonRoute, host, port).onComplete {
+      val routes: Route = cors() {
+        mockServer.domofonRoute
+      }
+
+      Http().bindAndHandle(routes, host, port).onComplete {
         case Success(binding) =>
           println(s"Listening on http:/${binding.localAddress}")
         case Failure(e) =>
