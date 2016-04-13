@@ -7,5 +7,10 @@ import mock.akka.MockMarshallers
 trait Feeders extends SprayJsonSupport with MockMarshallers {
   self: Generators =>
 
-  def contactFeeder = Iterator.continually(Map("contact" -> generateContact.toJson.prettyPrint))
+  def contactFeeder = Iterator.continually(
+    Map(
+      "contact" -> generateContact.toJson.prettyPrint,
+      "deputy" -> generateDeputy.toJson.prettyPrint
+    )
+  )
 }

@@ -20,6 +20,18 @@ trait Generators {
     adminEmail = _adminEmail
   ))
 
+  def generateDeputy: Deputy = sample(for {
+    _name <- name
+    _email <- email
+    _phone <- phone
+    _company <- Gen.some(company)
+  } yield Deputy(
+    name = _name,
+    notifyEmail = _email,
+    phone = _phone,
+    company = _company
+  ))
+
   private def name = arbitraryString(10, 20)
   private def email = arbitraryString(7, 15) map (e => s"$e@example.com")
   private def company = arbitraryCompany
