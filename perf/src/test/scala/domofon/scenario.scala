@@ -3,6 +3,9 @@ package domofon
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
+import concurrent.duration._
+import scala.language.postfixOps
+
 trait Scenario {
 
   self: Feeders =>
@@ -88,20 +91,30 @@ trait Scenario {
     .feed(contactFeeder)
     .exec(
       createContact,
-      getContact,
-      addDeputy,
-      getDeputy,
-      removeDeputy,
-      noDeputy
+      pause(200 milliseconds),
+      removeContact
     )
 
   val `update-contact-scenario` = scenario("Update Contact Scenario")
     .feed(contactFeeder)
     .exec(
       createContact,
+      pause(200 milliseconds),
+      getContact,
+      pause(200 milliseconds),
       addDeputy,
+      pause(200 milliseconds),
+      getDeputy,
+      pause(200 milliseconds),
+      changeImportance,
+      pause(200 milliseconds),
       removeDeputy,
-      changeImportance
+      pause(200 milliseconds),
+      noDeputy,
+      pause(200 milliseconds),
+      changeImportance,
+      pause(200 milliseconds),
+      removeContact
     )
   private def i(v: => String): String = v.replaceAllLiterally("@", "$")
 }

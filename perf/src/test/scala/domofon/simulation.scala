@@ -21,7 +21,7 @@ class ContactSimulation
     with Generators {
 
   setUp(
-    `create-contact-scenario`.
+    `update-contact-scenario`.
       inject(SimulationConfig.injection).
       protocols(SimulationConfig.httpConf)
   )
