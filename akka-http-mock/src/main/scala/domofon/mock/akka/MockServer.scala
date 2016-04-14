@@ -44,6 +44,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
   private[this] lazy val contacts = collection.concurrent.TrieMap[UUID, ContactResponse]()
 
   private[this] case class MissingRequiredFieldsRejection(message: String, fields: List[String]) extends Rejection
+
   private[this] case class TooManyRequestsRejection(message: String, nextTryAt: Option[LocalDateTime]) extends Rejection
 
   private[this] lazy val rejectionHandler: RejectionHandler = RejectionHandler.newBuilder().handle {
@@ -176,14 +177,6 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       }
                     }
                   } ~
-                  get {
-                    complete(contact)
-                  } ~
-                  delete {
-                    contacts.remove(contact.id)
-                    broadcastContactsUpdated()
-                    complete(StatusCodes.OK)
-                  } ~
                   path("message") {
                     put {
                       entity(as[String]) { msg =>
@@ -191,6 +184,16 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                         complete(ContactMessageUpdated("OK"))
                       }
                     }
+                  } ~
+                  pathEndOrSingleSlash {
+                    get {
+                      complete(contact)
+                    } ~
+                      delete {
+                        contacts.remove(contact.id)
+                        broadcastContactsUpdated()
+                        complete(StatusCodes.OK)
+                      }
                   }
             }
           } ~ pathEndOrSingleSlash {
