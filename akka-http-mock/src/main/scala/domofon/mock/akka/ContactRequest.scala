@@ -11,5 +11,5 @@ case class ContactRequest(
 )
 
 case object ContactRequest {
-  def requiredFields: Set[String] = Set("name", "company", "notifyEmail", "phone")
+  def requiredFields: Set[String] = Set("name", "notifyEmail", "phone")
 }
