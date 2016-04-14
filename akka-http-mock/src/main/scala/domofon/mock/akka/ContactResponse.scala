@@ -14,7 +14,8 @@ case class ContactResponse(
   message: String,
   fromDate: java.time.LocalDate,
   tillDate: Option[java.time.LocalDate],
-  deputy: Option[Deputy]
+  deputy: Option[Deputy],
+  nextNotificationAllowedAt: Option[java.time.LocalDateTime] = None
 )
 
 case object ContactResponse {
