@@ -178,12 +178,15 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                     }
                   } ~
                   path("message") {
-                    put {
-                      entity(as[String]) { msg =>
-                        contacts.update(contact.id, contact.copy(message = msg))
-                        complete(ContactMessageUpdated("OK"))
+                    get {
+                      complete(contact.message)
+                    } ~
+                      put {
+                        entity(as[String]) { msg =>
+                          contacts.update(contact.id, contact.copy(message = msg))
+                          complete(ContactMessageUpdated("OK"))
+                        }
                       }
-                    }
                   } ~
                   pathEndOrSingleSlash {
                     get {

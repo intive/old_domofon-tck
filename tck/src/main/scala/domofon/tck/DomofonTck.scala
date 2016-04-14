@@ -10,4 +10,4 @@ trait DomofonTck extends BaseTckTest
   with ChangeContactIsImportantTest
   with DomofonYamlTest
   with SendNotificationTest
-  with ContatctMessageTest
+  with ContactMessageTest
