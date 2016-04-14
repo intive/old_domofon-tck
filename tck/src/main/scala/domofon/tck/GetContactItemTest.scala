@@ -71,5 +71,17 @@ trait GetContactItemTest extends BaseTckTest {
       }
     }
 
+    it("Doesn't contain message as it might be sensitive information") {
+      val uuid = postContactRequest()
+
+      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.OK
+        val resp = responseAs[JsValue]
+        resp shouldBe a[JsObject]
+
+        resp.asJsObject.fields.keys should not contain ("message")
+      }
+    }
+
   }
 }
