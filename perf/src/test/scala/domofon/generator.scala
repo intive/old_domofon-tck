@@ -10,14 +10,16 @@ trait Generators {
     _name <- name
     _notifyEmail <- email
     _phone <- phone
-    _company <- company
+    _company <- Gen.some(company)
     _adminEmail <- Gen.some(email)
   } yield ContactRequest(
     name = _name,
     notifyEmail = _notifyEmail,
     phone = _phone,
     company = _company,
-    adminEmail = _adminEmail
+    adminEmail = _adminEmail,
+    fromDate = None,
+    tillDate = None
   ))
 
   def generateDeputy: Deputy = sample(for {
