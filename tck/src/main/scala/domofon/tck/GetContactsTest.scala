@@ -37,7 +37,7 @@ trait GetContactsTest extends BaseTckTest {
     it("Created Contact could be listed") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts") ~> domofonRoute ~> check {
+      Get(s"/contacts") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         val contacts = responseAs[List[GetContact]]
         contacts.filter(_.id === uuid) should have size (1)
