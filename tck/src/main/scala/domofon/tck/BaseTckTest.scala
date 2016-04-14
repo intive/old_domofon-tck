@@ -34,7 +34,7 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
     var uuid: UUID = nonExistentUuid
-    val ret = Post("/contacts", cr.toJson) ~> domofonRoute ~> check {
+    val ret = Post("/contacts", cr.toJson) ~> acceptPlain ~> domofonRoute ~> check {
       status shouldBe StatusCodes.OK
       uuid = UUID.fromString(responseAs[String])
     }
