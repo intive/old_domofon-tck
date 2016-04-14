@@ -41,7 +41,7 @@ trait GetContactItemTest extends BaseTckTest {
       }
     }
 
-    it("Returned object is JSON object and could be decoded as ContactResponse") {
+    it("Returned object is JSON object and could be decoded as Contact response") {
       val uuid = postContactRequest()
 
       Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
@@ -49,5 +49,16 @@ trait GetContactItemTest extends BaseTckTest {
         responseAs[GetContact] shouldBe a[GetContact]
       }
     }
+
+    it("When contact was posted without adminEmail, notifyEmail is used instead") {
+      val notifyEmail = "some@domain.pl"
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None))
+
+      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.OK
+        responseAs[GetContact].adminEmail shouldBe notifyEmail
+      }
+    }
+
   }
 }
