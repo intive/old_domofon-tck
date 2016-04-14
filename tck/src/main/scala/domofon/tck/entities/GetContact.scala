@@ -10,7 +10,6 @@ case class GetContact(
   phone: String,
   adminEmail: String,
   isImportant: Boolean,
-  message: String,
   fromDate: java.time.LocalDate,
   tillDate: Option[java.time.LocalDate] = None,
   deputy: Option[Deputy] = None
