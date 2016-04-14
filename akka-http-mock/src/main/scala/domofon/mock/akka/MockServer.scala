@@ -42,12 +42,12 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
 
   private[this] lazy val contacts = collection.concurrent.TrieMap[UUID, ContactResponse]()
 
-  private[this] case class MissingRequiredFieldsRejection(message: String, cause: Option[Throwable]) extends Rejection
+  private[this] case class MissingRequiredFieldsRejection(message: String, fields: List[String]) extends Rejection
 
   private[this] lazy val rejectionHandler: RejectionHandler = RejectionHandler.newBuilder().handle {
-    case MissingRequiredFieldsRejection(message, cause) =>
+    case MissingRequiredFieldsRejection(message, fields) =>
       complete(
-        HttpResponse(StatusCodes.UnprocessableEntity, entity = message + cause.map(c => ": " + c.getMessage).getOrElse(""))
+        (StatusCodes.UnprocessableEntity, MissingFieldsError(message, fields))
       )
   }.result()
 
@@ -97,8 +97,10 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       contacts.update(id, ContactResponse.from(id, contact))
                       broadcastContactsUpdated
                       complete(id)
-                    case Failure(ex) =>
-                      reject(MissingRequiredFieldsRejection("Contact requests has wrong structure", Some(ex)))
+                    case Failure(DeserializationException(msg, ex, fields)) =>
+                      reject(MissingRequiredFieldsRejection(msg, fields))
+                    case Failure(otherEx) =>
+                      reject()
                   }
               }
             }
