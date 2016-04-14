@@ -183,8 +183,15 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                     contacts.remove(contact.id)
                     broadcastContactsUpdated()
                     complete(StatusCodes.OK)
+                  } ~
+                  path("message") {
+                    put {
+                      entity(as[String]) { msg =>
+                        contacts.update(contact.id, contact.copy(message = msg))
+                        complete(ContactMessageUpdated("OK"))
+                      }
+                    }
                   }
-
             }
           } ~ pathEndOrSingleSlash {
             get {

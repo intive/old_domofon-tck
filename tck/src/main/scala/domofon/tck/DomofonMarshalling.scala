@@ -5,7 +5,7 @@ import java.util.UUID
 
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.MediaTypes
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.unmarshalling.{Unmarshaller, FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
 import domofon.tck.entities._
 import spray.json._
 
