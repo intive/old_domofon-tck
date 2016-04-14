@@ -1,5 +1,6 @@
 package domofon.tck.entities
 
+import java.time.LocalDate
 import java.util.UUID
 
 case class GetContact(
@@ -8,10 +9,10 @@ case class GetContact(
   company: String,
   notifyEmail: String,
   phone: String,
-  adminEmail: String,
-  isImportant: Boolean,
-  message: String,
-  fromDate: java.time.LocalDate,
+  adminEmail: Option[String],
+  isImportant: Option[Boolean],
+  message: Option[String],
+  fromDate: Option[java.time.LocalDate] = Some(LocalDate.now()),
   tillDate: Option[java.time.LocalDate] = None,
   deputy: Option[Deputy] = None
 )

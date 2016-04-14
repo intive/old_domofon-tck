@@ -36,7 +36,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
 
       Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
-        responseAs[GetContact].isImportant shouldBe false
+        responseAs[GetContact].isImportant shouldBe Some(false)
       }
     }
 
@@ -95,7 +95,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
 
       Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
-        responseAs[GetContact].isImportant shouldBe true
+        responseAs[GetContact].isImportant shouldBe Some(true)
       }
 
     }
