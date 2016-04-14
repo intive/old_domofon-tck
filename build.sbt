@@ -117,6 +117,19 @@ lazy val `akka-http-mock-server` =
     )
     .dependsOn(`akka-http-mock`)
 
+lazy val performance =
+  (project in file("perf"))
+    .enablePlugins(GatlingPlugin)
+    .settings(commonSettings)
+    .settings(
+      libraryDependencies ++= Seq(
+        "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
+        "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.1.7" % "test",
+        "io.gatling" % "gatling-test-framework" % "2.1.7" % "test",
+        "org.scalacheck" %% "scalacheck" % "1.13.0" % "test"
+      )
+    )
+    .dependsOn(`akka-http-mock`)
 
 lazy val root = (project in file("."))
   .settings(commonSettings)
@@ -129,3 +142,4 @@ lazy val root = (project in file("."))
 
 
 addCommandAlias("formatAll", ";scalariformFormat;test:scalariformFormat")
+addCommandAlias("compileAll", ";compile;performance/test:compile")
