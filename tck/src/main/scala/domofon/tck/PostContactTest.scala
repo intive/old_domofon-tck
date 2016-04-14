@@ -53,14 +53,12 @@ trait PostContactTest extends BaseTckTest {
     it(s"When failing it notifies about all missing fields") {
       val cr = contactRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
-      pendingUntilFixed {
-        Post("/contacts", json) ~> domofonRoute ~> check {
-          status shouldBe StatusCodes.UnprocessableEntity
-          val r = responseAs[String]
-          requiredFields.foreach {
-            field =>
-              r should include(field)
-          }
+      Post("/contacts", json) ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.UnprocessableEntity
+        val r = responseAs[String]
+        requiredFields.foreach {
+          field =>
+            r should include(field)
         }
       }
     }
