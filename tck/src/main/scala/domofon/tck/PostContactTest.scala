@@ -18,7 +18,13 @@ trait PostContactTest extends BaseTckTest {
       }
     }
 
-    it("Discards empty json object ") {
+    it("Discards request as Json array") {
+      Post("/contacts", JsArray()) ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
+    it("Discards empty json object") {
       Post("/contacts", JsObject()) ~> domofonRoute ~> check {
         status shouldBe StatusCodes.UnprocessableEntity
       }
