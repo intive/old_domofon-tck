@@ -61,11 +61,16 @@ object Server extends App {
             binding.localAddress.getHostName
           }
           val serverUrl = s"http://${hostname}:${binding.localAddress.getPort}"
-
+          println()
           println(s"Open $serverUrl")
+          println()
+          println()
+          println("To use Swagger Editor (preferred):")
+          println(s"http://editor.swagger.io/#/?import=${serverUrl}/domofon.yaml")
           println()
           println("To use Swagger UI:")
           println(s"http://blstream.github.io/domofon-api/#swagger=${serverUrl}/domofon.yaml")
+          println()
           println()
 
         case Failure(e) =>
