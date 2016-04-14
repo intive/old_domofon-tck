@@ -10,13 +10,14 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.util.FastFuture
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Source
 import de.heikoseeberger.akkasse.{EventStreamMarshalling, ServerSentEvent}
 import spray.json._
 
 import scala.collection.mutable
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -43,11 +44,16 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
   private[this] lazy val contacts = collection.concurrent.TrieMap[UUID, ContactResponse]()
 
   private[this] case class MissingRequiredFieldsRejection(message: String, fields: List[String]) extends Rejection
+  private[this] case class TooManyRequestsRejection(message: String, nextTryAt: Option[LocalDateTime]) extends Rejection
 
   private[this] lazy val rejectionHandler: RejectionHandler = RejectionHandler.newBuilder().handle {
     case MissingRequiredFieldsRejection(message, fields) =>
       complete(
         (StatusCodes.UnprocessableEntity, MissingFieldsError(message, fields))
+      )
+    case TooManyRequestsRejection(msg, when) =>
+      complete(
+        (StatusCodes.TooManyRequests, TooManyRequestsError(msg, when))
       )
   }.result()
 
@@ -64,6 +70,15 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
             reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
         }
     }
+  }
+
+  def notifyDelay: FiniteDuration = 1.minute
+
+  case class NotificationResult(message: String, wasSuccessfull: Boolean)
+
+  def sendNotifications(contactResponse: ContactResponse): Future[NotificationResult] = {
+    println(s"Sending notification to ${contactResponse}")
+    FastFuture.successful(NotificationResult("Notification sent", true))
   }
 
   private[this] lazy val routes: Route = handleRejections(rejectionHandler) {
@@ -144,6 +159,23 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                         }
                       }
                   } ~
+                  path("notify") {
+                    post {
+                      if (contact.nextNotificationAllowedAt.map(!_.isAfter(LocalDateTime.now)).getOrElse(true)) {
+                        val updatedContact = contact.copy(
+                          nextNotificationAllowedAt = Some(LocalDateTime.now.plusSeconds(notifyDelay.toSeconds))
+                        )
+                        contacts.update(contact.id, updatedContact)
+                        broadcastContactsUpdated
+                        onComplete(sendNotifications(updatedContact)) {
+                          case Success(result) => complete(StatusCodes.OK)
+                          case Failure(f)      => throw f
+                        }
+                      } else {
+                        reject(TooManyRequestsRejection("Can't send notifications that often", contact.nextNotificationAllowedAt))
+                      }
+                    }
+                  } ~
                   get {
                     complete(contact)
                   } ~
@@ -152,6 +184,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                     broadcastContactsUpdated()
                     complete(StatusCodes.OK)
                   }
+
             }
           } ~ pathEndOrSingleSlash {
             get {

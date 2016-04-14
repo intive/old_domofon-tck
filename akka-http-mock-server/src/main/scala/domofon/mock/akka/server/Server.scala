@@ -2,15 +2,18 @@ package domofon.mock.akka.server
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl._
-import akka.http.scaladsl.model.Uri
+import akka.http.scaladsl.model.{HttpMethods, Uri}
+import akka.http.scaladsl.server.Directives.handleRejections
 import akka.http.scaladsl.server._
 import akka.stream._
+import ch.megard.akka.http.cors.CorsDirectives._
+import ch.megard.akka.http.cors.CorsSettings
 import domofon.mock.akka.MockServer
 
+import scala.collection.immutable
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.util.{Success, Failure}
-import ch.megard.akka.http.cors.CorsDirectives._
+import scala.util.{Failure, Success}
 
 object Server extends App {
 
@@ -48,8 +51,14 @@ object Server extends App {
 
       val mockServer = MockServer(system, materializer)
 
-      val routes: Route = cors() {
-        mockServer.domofonRoute
+      val corsSettings = CorsSettings.defaultSettings.copy(allowedMethods = immutable.Seq(
+        HttpMethods.GET, HttpMethods.POST, HttpMethods.PUT, HttpMethods.DELETE
+      ))
+
+      val routes: Route = handleRejections(corsRejectionHandler) {
+        cors(corsSettings) {
+          mockServer.domofonRoute
+        }
       }
 
       Http().bindAndHandle(routes, host, port).onComplete {
@@ -61,11 +70,16 @@ object Server extends App {
             binding.localAddress.getHostName
           }
           val serverUrl = s"http://${hostname}:${binding.localAddress.getPort}"
-
+          println()
           println(s"Open $serverUrl")
+          println()
+          println()
+          println("To use Swagger Editor (preferred):")
+          println(s"http://editor.swagger.io/#/?import=${serverUrl}/domofon.yaml")
           println()
           println("To use Swagger UI:")
           println(s"http://blstream.github.io/domofon-api/#swagger=${serverUrl}/domofon.yaml")
+          println()
           println()
 
         case Failure(e) =>

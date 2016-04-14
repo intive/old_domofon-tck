@@ -11,36 +11,25 @@ import spray.json._
 
 trait DomofonMarshalling extends DefaultJsonProtocol {
 
-  implicit object LocalDateJsonFormat extends RootJsonFormat[LocalDate] {
-
-    override def write(obj: LocalDate) = JsString(obj.toString)
-
-    override def read(json: JsValue): LocalDate = json match {
+  implicit val localDateJsonFormat = lift(new JsonReader[LocalDate] {
+    override def read(json: JsValue): LocalDate = (json: @unchecked) match {
       case JsString(s) => LocalDate.parse(s)
-      case _           => throw new DeserializationException("Expected Date as String in YYYY-mm-dd format")
     }
-  }
+  })
 
-  implicit object LocalDateTimeJsonFormat extends RootJsonFormat[LocalDateTime] {
-
-    override def write(obj: LocalDateTime) = JsString(obj.toString)
-
-    override def read(json: JsValue): LocalDateTime = json match {
+  implicit val localDateTimeJsonFormat = lift(new JsonReader[LocalDateTime] {
+    override def read(json: JsValue): LocalDateTime = (json: @unchecked) match {
       case JsString(s) => LocalDateTime.parse(s)
-      case _           => throw new DeserializationException("Expected Date time as String in YYYY-mm-dd hh:mm:ss format")
     }
-  }
+  })
 
-  implicit object UUIDJsonFormat extends RootJsonFormat[UUID] {
-
-    override def write(obj: UUID) = JsString(obj.toString)
-
-    override def read(json: JsValue): UUID = json match {
+  implicit val uuidJsonFormat = lift(new JsonReader[UUID] {
+    override def read(json: JsValue): UUID = (json: @unchecked) match {
       case JsString(s) => UUID.fromString(s)
-      case _           => throw new DeserializationException("Expected UUID as String")
     }
-  }
+  })
 
+  implicit val notificationRetryFormat = jsonFormat2(NotificationRetry.apply)
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
   implicit val contactRequestFormat = jsonFormat7(PostContact.apply)
   implicit val contactResponseFormat = jsonFormat11(GetContact.apply)
