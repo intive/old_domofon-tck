@@ -60,5 +60,16 @@ trait GetContactItemTest extends BaseTckTest {
       }
     }
 
+    it("When contact was posted with adminEmail, it is available in GET") {
+      val notifyEmail = "some@domain.pl"
+      val adminEmail = "admin@domain.pl"
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail)))
+
+      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.OK
+        responseAs[GetContact].adminEmail shouldBe adminEmail
+      }
+    }
+
   }
 }
