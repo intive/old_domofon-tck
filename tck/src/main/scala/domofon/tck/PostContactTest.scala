@@ -43,9 +43,9 @@ trait PostContactTest extends BaseTckTest {
       val cr = contactRequest()
       val json = JsObject(cr.toJson.asJsObject.fields - field)
       it(s"Fails when required field '${field}' is missing") {
-        Post("/contacts", json) ~> domofonRoute ~> check {
+        Post("/contacts", json) ~> acceptJson ~> domofonRoute ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
-          responseAs[String] should include(field)
+          responseAs[String].parseJson.asJsObject.fields should contain("fields" -> JsArray(JsString(field)))
         }
       }
     }
@@ -56,11 +56,8 @@ trait PostContactTest extends BaseTckTest {
       pendingUntilFixed {
         Post("/contacts", json) ~> domofonRoute ~> check {
           status shouldBe StatusCodes.UnprocessableEntity
-          val r = responseAs[String]
-          requiredFields.foreach {
-            field =>
-              r should include(field)
-          }
+          val r = responseAs[JsObject]
+          r.fields("fields").convertTo[Set[String]] should contain allElementsOf requiredFields
         }
       }
     }

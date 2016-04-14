@@ -75,7 +75,8 @@ lazy val `tck` =
         "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
-        "de.heikoseeberger" %% "akka-sse" % "1.7.2"
+        "de.heikoseeberger" %% "akka-sse" % "1.7.2",
+        "com.chuusai"       %% "shapeless" % "2.3.0"
       ),
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion,
