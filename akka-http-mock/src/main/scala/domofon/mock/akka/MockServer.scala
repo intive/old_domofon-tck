@@ -104,7 +104,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
             complete(contacts.values.toJson)
           } ~
             post {
-              entity(as[JsValue]) {
+              entity(as[JsObject]) {
                 json =>
                   Try(json.convertTo[ContactRequest]) match {
                     case Success(contact) =>
