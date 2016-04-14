@@ -27,7 +27,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Created Contact could be retrieved") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
       }
     }
@@ -35,7 +35,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Returned object is JSON object") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[JsValue] shouldBe a[JsObject]
       }
@@ -44,7 +44,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Returned object is JSON object and could be decoded as ContactResponse") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[GetContact] shouldBe a[GetContact]
       }
