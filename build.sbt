@@ -142,3 +142,4 @@ lazy val root = (project in file("."))
 
 
 addCommandAlias("formatAll", ";scalariformFormat;test:scalariformFormat")
+addCommandAlias("compileAll", ";compile;performance/test:compile")
