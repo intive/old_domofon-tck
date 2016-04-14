@@ -27,7 +27,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Created Contact could be retrieved") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
       }
     }
@@ -35,19 +35,53 @@ trait GetContactItemTest extends BaseTckTest {
     it("Returned object is JSON object") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[JsValue] shouldBe a[JsObject]
       }
     }
 
-    it("Returned object is JSON object and could be decoded as ContactResponse") {
+    it("Returned object is JSON object and could be decoded as Contact response") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
         status shouldBe StatusCodes.OK
         responseAs[GetContact] shouldBe a[GetContact]
       }
     }
+
+    it("When contact was posted without adminEmail, notifyEmail is used instead") {
+      val notifyEmail = "some@domain.pl"
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None))
+
+      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.OK
+        responseAs[GetContact].adminEmail shouldBe notifyEmail
+      }
+    }
+
+    it("When contact was posted with adminEmail, it is available in GET") {
+      val notifyEmail = "some@domain.pl"
+      val adminEmail = "admin@domain.pl"
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail)))
+
+      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.OK
+        responseAs[GetContact].adminEmail shouldBe adminEmail
+      }
+    }
+
+    it("Doesn't contain message as it might be sensitive information") {
+      val uuid = postContactRequest()
+
+      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+        status shouldBe StatusCodes.OK
+        val resp = responseAs[JsValue]
+        resp shouldBe a[JsObject]
+
+        resp.asJsObject.fields.keys should not contain ("message")
+      }
+    }
+
   }
 }
