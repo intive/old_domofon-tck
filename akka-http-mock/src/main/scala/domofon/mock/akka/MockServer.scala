@@ -40,7 +40,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
 
   def domofonRoute: Route = Route.seal(routes)
 
-  private[this] lazy val contacts = mutable.Map[UUID, ContactResponse]()
+  private[this] lazy val contacts = collection.concurrent.TrieMap[UUID, ContactResponse]()
 
   private[this] case class MissingRequiredFieldsRejection(message: String, cause: Option[Throwable]) extends Rejection
 
@@ -144,6 +144,11 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                   } ~
                   get {
                     complete(contact)
+                  } ~
+                  delete {
+                    contacts.remove(contact.id)
+                    broadcastContactsUpdated()
+                    complete(StatusCodes.OK)
                   }
             }
           } ~ pathEndOrSingleSlash {
