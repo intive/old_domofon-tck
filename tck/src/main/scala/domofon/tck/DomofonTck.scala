@@ -8,6 +8,7 @@ trait DomofonTck extends BaseTckTest
     with SseContactsTest
     with ChangeContactDeputyTest
     with ChangeContactIsImportantTest
-    with DomofonYamlTest {
+    with DomofonYamlTest
+    with SendNotificationTest {
 
 }
