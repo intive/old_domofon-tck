@@ -13,7 +13,7 @@ trait RemoveContactItemTest extends BaseTckTest {
       }
     }
 
-    it("Removed contact when one exists") {
+    it("Remove contact when one exists") {
       val uuid = postContactRequest()
 
       Delete(s"/contacts/$uuid") ~> domofonRoute ~> check {
