@@ -6,15 +6,15 @@ import java.util.UUID
 case class ContactResponse(
   id: UUID,
   name: String,
-  company: String,
+  company: Option[String],
   notifyEmail: String,
   phone: String,
   adminEmail: String,
   isImportant: Boolean,
   message: String,
   fromDate: java.time.LocalDate,
-  tillDate: Option[java.time.LocalDate] = None,
-  deputy: Option[Deputy] = None
+  tillDate: Option[java.time.LocalDate],
+  deputy: Option[Deputy]
 )
 
 case object ContactResponse {

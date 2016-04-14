@@ -10,47 +10,53 @@ import spray.json._
 
 trait MockMarshallers extends DefaultJsonProtocol {
 
-  implicit object LocalDateJsonFormat extends RootJsonFormat[LocalDate] {
+  implicit val localDateJsonWriter = lift(new JsonWriter[LocalDate] {
 
     override def write(obj: LocalDate) = JsString(obj.toString)
+  })
 
-    override def read(json: JsValue): LocalDate = json match {
-      case JsString(s) => LocalDate.parse(s)
-      case _           => throw new DeserializationException("Expected Date as String in YYYY-mm-dd format")
-    }
-  }
-
-  implicit object LocalDateTimeJsonFormat extends RootJsonFormat[LocalDateTime] {
-
+  implicit val localDateTimeJsonWriter = lift(new JsonWriter[LocalDateTime] {
     override def write(obj: LocalDateTime) = JsString(obj.toString)
+  })
 
-    override def read(json: JsValue): LocalDateTime = json match {
-      case JsString(s) => LocalDateTime.parse(s)
-      case _           => throw new DeserializationException("Expected Date time as String in YYYY-mm-dd hh:mm:ss format")
-    }
-  }
-
-  implicit object UUIDJsonFormat extends RootJsonFormat[UUID] {
-
+  implicit val uuidJsonWriter = lift(new JsonWriter[UUID] {
     override def write(obj: UUID) = JsString(obj.toString)
-
-    override def read(json: JsValue): UUID = json match {
-      case JsString(s) => UUID.fromString(s)
-      case _           => throw new DeserializationException("Expected UUID as String")
-    }
-  }
+  })
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
-  implicit val contactRequestFormat = jsonFormat7(ContactRequest.apply)
+  implicit val contactRequestFormat = new RootJsonFormat[ContactRequest] {
+    private[this] val autoFormat = jsonFormat7(ContactRequest.apply)
+
+    override def write(obj: ContactRequest): JsValue = obj.toJson(autoFormat)
+
+    override def read(json: JsValue): ContactRequest = json match {
+      case JsObject(fields) =>
+        val keys = fields.keySet
+        val missing = ContactRequest.requiredFields -- keys
+        if (missing.isEmpty)
+          json.convertTo[ContactRequest](autoFormat)
+        else {
+          throw new DeserializationException(s"Contact doesn't have required fields: ${missing.mkString(", ")}", fieldNames = missing.toList)
+        }
+      case _ => throw new DeserializationException("Contact request must be JSON object")
+    }
+  }
+
   implicit val contactResponseFormat = jsonFormat11(ContactResponse.apply)
 
   implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
   implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
   implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
+  implicit val missingFieldsErrorFormat = jsonFormat2(MissingFieldsError.apply)
 
   implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(uuid => s"""{"id":"${uuid}"}""")
+  )
+
+  implicit val missingFieldsErrorMarshaller: ToEntityMarshaller[MissingFieldsError] = Marshaller.oneOf(
+    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => e.message),
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
   )
 
   implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =

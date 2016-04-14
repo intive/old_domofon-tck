@@ -51,8 +51,10 @@ trait DomofonMarshalling extends DefaultJsonProtocol {
 
   implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),
-    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(uuid => s"""{"id":"${uuid}"}""")
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(uuid => JsObject(("id", JsString(uuid.toString))).prettyPrint)
   )
+
+  implicit val validationFieldsError = jsonFormat2(ValidationFieldsError.apply)
 
   implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =
     PredefinedFromEntityUnmarshallers.stringUnmarshaller.map(UUID.fromString(_))

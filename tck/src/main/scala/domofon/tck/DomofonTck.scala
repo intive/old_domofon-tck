@@ -4,6 +4,7 @@ trait DomofonTck extends BaseTckTest
     with PostContactTest
     with GetContactsTest
     with GetContactItemTest
+    with RemoveContactItemTest
     with SseContactsTest
     with ChangeContactDeputyTest
     with ChangeContactIsImportantTest
