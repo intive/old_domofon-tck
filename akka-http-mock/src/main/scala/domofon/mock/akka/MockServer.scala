@@ -102,7 +102,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
           }
         } ~ path("contacts") {
           get {
-            complete(contacts.values.toJson)
+            complete(contacts.values.map(_.toJson(contactWithoutMessageWriter)))
           } ~
             post {
               entity(as[JsObject]) {
@@ -190,7 +190,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                   } ~
                   pathEndOrSingleSlash {
                     get {
-                      complete(contact)
+                      complete(contact.toJson(contactWithoutMessageWriter))
                     } ~
                       delete {
                         contacts.remove(contact.id)
