@@ -3,7 +3,7 @@ package domofon.tck
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, MediaTypes}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
@@ -45,7 +45,8 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     uuid
   }
 
-  def formatedEntityString(content: String): String = {
+  def formatedEntityString(entity: HttpEntity): String = {
+    val content = Await.result(entity.dataBytes.runReduce(_ ++ _), Duration.Inf).utf8String
     Try(content.parseJson.prettyPrint).getOrElse {
       val len = content.length
       if (len + 3 > maxSampleLength) {
@@ -56,27 +57,36 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     }
   }
 
-  def requestAsString(request: HttpRequest): String = {
-    val content = Await.result(request.entity.dataBytes.runReduce(_ ++ _), Duration.Inf).utf8String
+  private[this] def contentTypeStringOrEmpty(entity: HttpEntity): String = {
+    if (entity.contentType == ContentTypes.NoContentType) ""
+    else
+      s"Content-type: ${entity.contentType}\n"
+  }
 
-    s"""
-       |${request.method.value} ${request.uri}
-       |${request.headers.mkString("\n  ")}
-       |Content-type: ${request.entity.contentType}
-       |
-       |
-       |${formatedEntityString(content)}""".stripMargin
+  private[this] def headersStringOrEmpty(headers: Seq[HttpHeader]): String = {
+    headers.mkString("", "\n", "\n")
+  }
+
+  def requestAsString(request: HttpRequest): String = {
+    val strBuilder = StringBuilder.newBuilder
+    strBuilder
+      .append("\n")
+      .append(request.method.value).append(" ").append(request.uri).append("\n")
+      .append(headersStringOrEmpty(request.headers))
+      .append(contentTypeStringOrEmpty(request.entity))
+      .append(formatedEntityString(request.entity))
+      .toString()
   }
 
   def responseAsString(response: HttpResponse): String = {
-    val content = Await.result(response.entity.dataBytes.runReduce(_ ++ _), Duration.Inf).utf8String
-    s"""
-       |${response.status.value}
-       |${response.headers.mkString("\n  ")}
-       |Content-type: ${response.entity.contentType}
-       |
-       |
-       |${formatedEntityString(content)}""".stripMargin
+    val strBuilder = StringBuilder.newBuilder
+    strBuilder
+      .append("\n")
+      .append(response.status.value).append("\n")
+      .append(headersStringOrEmpty(response.headers))
+      .append(contentTypeStringOrEmpty(response.entity))
+      .append(formatedEntityString(response.entity))
+      .toString()
   }
 
   implicit class PimpedRequest(request: HttpRequest) {
