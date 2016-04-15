@@ -7,14 +7,14 @@ trait ContactMessageTest extends BaseTckTest {
 
   describe("GET /contact/{id}/message") {
     it("should fail with 404 for non-existent contact") {
-      Get(s"/contacts/${nonExistentUuid}/message") ~> domofonRoute ~> check {
+      Get(s"/contacts/${nonExistentUuid}/message") ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
 
     it("Should return default message") {
       val uuid = postContactRequest()
-      Get(s"/contacts/${uuid}/message") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}/message") ~~> {
         status shouldBe StatusCodes.OK
       }
     }
@@ -23,14 +23,14 @@ trait ContactMessageTest extends BaseTckTest {
 
   describe("PUT /contact/{id}/message") {
     it("should fail with 404 for non-existent contact") {
-      Put(s"/contacts/${nonExistentUuid}/message").withEntity("Got a package for ya!") ~> domofonRoute ~> check {
+      Put(s"/contacts/${nonExistentUuid}/message").withEntity("Got a package for ya!") ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
 
     it("should update message for existing contact, respond with String") {
       val uuid = postContactRequest()
-      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> acceptPlain ~> domofonRoute ~> check {
+      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> acceptPlain ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String] should equal("OK")
       }
@@ -38,7 +38,7 @@ trait ContactMessageTest extends BaseTckTest {
 
     it("should update message for existing contact, respond with JSON") {
       val uuid = postContactRequest()
-      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> acceptJson ~> domofonRoute ~> check {
+      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String].parseJson.asJsObject.fields("status") should equal(JsString("OK"))
       }
@@ -47,12 +47,12 @@ trait ContactMessageTest extends BaseTckTest {
     it("Updated message could be retrieved") {
       val uuid = postContactRequest()
       val message = "Got a package for ya!"
-      Put(s"/contacts/$uuid/message").withEntity(message) ~> acceptJson ~> domofonRoute ~> check {
+      Put(s"/contacts/$uuid/message").withEntity(message) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String].parseJson.asJsObject.fields("status") should equal(JsString("OK"))
       }
 
-      Get(s"/contacts/${uuid}/message") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}/message") ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String] shouldBe message
       }

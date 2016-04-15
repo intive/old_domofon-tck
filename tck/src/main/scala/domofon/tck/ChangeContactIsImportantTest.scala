@@ -17,7 +17,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
   describe("GET /contacts/{id}/important") {
 
     it("When contact doesn't exist it also returns 404") {
-      Get(isImportantUrl(nonExistentUuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(isImportantUrl(nonExistentUuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -25,7 +25,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("By default Contact is not important") {
       val uuid = postContactRequest()
 
-      Get(isImportantUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(isImportantUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe false
       }
@@ -34,7 +34,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("By default Contact is not important in GET /contacts/{id}/") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[GetContact].isImportant shouldBe false
       }
@@ -45,7 +45,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
   describe("PUT /contacts/{id}/important") {
 
     it("When contact doesn't exist it is impossible to change importance") {
-      Put(isImportantUrl(nonExistentUuid), IsImportant(false).toJson) ~> domofonRoute ~> check {
+      Put(isImportantUrl(nonExistentUuid), IsImportant(false).toJson) ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -53,11 +53,11 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("It is possible to set importance with PUT /contacts/{id}/important") {
       val uuid = postContactRequest()
 
-      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~> domofonRoute ~> check {
+      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(isImportantUrl(uuid)) ~> domofonRoute ~> check {
+      Get(isImportantUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe true
       }
@@ -66,20 +66,20 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("It is possible to change importance back to falsewith PUT /contacts/{id}/important") {
       val uuid = postContactRequest()
 
-      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~> domofonRoute ~> check {
+      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(isImportantUrl(uuid)) ~> domofonRoute ~> check {
+      Get(isImportantUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe true
       }
 
-      Put(isImportantUrl(uuid), IsImportant(false).toJson) ~> domofonRoute ~> check {
+      Put(isImportantUrl(uuid), IsImportant(false).toJson) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(isImportantUrl(uuid)) ~> domofonRoute ~> check {
+      Get(isImportantUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe false
       }
@@ -89,11 +89,11 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("Changed importance is reflected in GET /contacts/{id}") {
       val uuid = postContactRequest()
 
-      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~> domofonRoute ~> check {
+      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
         responseAs[GetContact].isImportant shouldBe true
       }
@@ -103,7 +103,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("Can respond only with application/json and fails with other response types on PUT /contacts/{id}/important when exists") {
       val uuid = postContactRequest()
 
-      Get(isImportantUrl(uuid)) ~> acceptPlain ~> domofonRoute ~> check {
+      Get(isImportantUrl(uuid)) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.NotAcceptable
       }
     }

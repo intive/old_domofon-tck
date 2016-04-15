@@ -11,25 +11,25 @@ trait GetContactsTest extends BaseTckTest {
   describe("GET /contacts") {
 
     it("Responds with OK status on GET") {
-      Get("/contacts") ~> acceptJson ~> domofonRoute ~> check {
+      Get("/contacts") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
       }
     }
 
     it("Can respond only with application/json and fails with other response types") {
-      Get("/contacts") ~> acceptPlain ~> domofonRoute ~> check {
+      Get("/contacts") ~> acceptPlain ~~> {
         status shouldBe StatusCodes.NotAcceptable
       }
     }
 
     it("Response is JSON array") {
-      Get("/contacts") ~> acceptJson ~> domofonRoute ~> check {
+      Get("/contacts") ~> acceptJson ~~> {
         responseAs[JsArray] shouldBe a[JsArray]
       }
     }
 
     it("If there are returned items, they are valid JSON objects") {
-      Get("/contacts") ~> acceptJson ~> domofonRoute ~> check {
+      Get("/contacts") ~> acceptJson ~~> {
         responseAs[List[JsObject]] shouldBe a[List[_]]
       }
     }
@@ -37,7 +37,7 @@ trait GetContactsTest extends BaseTckTest {
     it("Created Contact could be listed") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts") ~> acceptJson ~> domofonRoute ~> check {
+      Get(s"/contacts") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         val contacts = responseAs[List[GetContact]]
         contacts.filter(_.id === uuid) should have size (1)

@@ -2,7 +2,7 @@ package domofon.tck
 
 import domofon.tck.DomofonMarshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
 import domofon.tck.entities.GetContact
 import spray.json._
 
@@ -11,7 +11,7 @@ trait GetContactItemTest extends BaseTckTest {
   describe("GET /contacts/{id}") {
 
     it("When contact doesn't exist 404 is returned") {
-      Get(s"/contacts/${nonExistentUuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${nonExistentUuid}") ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -19,7 +19,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Requesting ID not in UUID format fails") {
       val notUuid = "this-is-not-uuid"
 
-      Get(s"/contacts/${notUuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${notUuid}") ~~> {
         status shouldBe StatusCodes.BadRequest
       }
     }
@@ -27,7 +27,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Created Contact could be retrieved") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
       }
     }
@@ -35,7 +35,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Returned object is JSON object") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[JsValue] shouldBe a[JsObject]
       }
@@ -44,7 +44,9 @@ trait GetContactItemTest extends BaseTckTest {
     it("Returned object is JSON object and could be decoded as Contact response") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> acceptJson ~> domofonRoute ~> check {
+      val request: HttpRequest = Get(s"/contacts/${uuid}") ~> acceptJson
+
+      Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[GetContact] shouldBe a[GetContact]
       }
@@ -54,7 +56,7 @@ trait GetContactItemTest extends BaseTckTest {
       val notifyEmail = "some@domain.pl"
       val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None))
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
         responseAs[GetContact].adminEmail shouldBe notifyEmail
       }
@@ -65,7 +67,7 @@ trait GetContactItemTest extends BaseTckTest {
       val adminEmail = "admin@domain.pl"
       val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail)))
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
         responseAs[GetContact].adminEmail shouldBe adminEmail
       }
@@ -74,7 +76,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("Doesn't contain message as it might be sensitive information") {
       val uuid = postContactRequest()
 
-      Get(s"/contacts/${uuid}") ~> domofonRoute ~> check {
+      Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
         val resp = responseAs[JsValue]
         resp shouldBe a[JsObject]

@@ -16,36 +16,36 @@ trait SendNotificationTest extends BaseTckTest {
 
   describe("POST /contacts/{id}/notify") {
     it("When contact doesn't exist it is impossible to send notification") {
-      Post(notifyUrl(nonExistentUuid)) ~> domofonRoute ~> check {
+      Post(notifyUrl(nonExistentUuid)) ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
 
     it("It sends notification if it exists") {
       val uuid = postContactRequest()
-      Post(notifyUrl(uuid)) ~> domofonRoute ~> check {
+      Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
 
     it("It discards notifications happening too often") {
       val uuid = postContactRequest()
-      Post(notifyUrl(uuid)) ~> domofonRoute ~> check {
+      Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Post(notifyUrl(uuid)) ~> domofonRoute ~> check {
+      Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.TooManyRequests
       }
     }
 
     it("It tells when it is possible to retry sending notification as application/json") {
       val uuid = postContactRequest()
-      Post(notifyUrl(uuid)) ~> domofonRoute ~> check {
+      Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Post(notifyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Post(notifyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.TooManyRequests
         responseAs[NotificationRetry].message should not be empty
       }

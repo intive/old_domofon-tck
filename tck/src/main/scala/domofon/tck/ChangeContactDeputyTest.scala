@@ -25,7 +25,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
   describe("GET /contacts/{id}/deputy") {
 
     it("When contact doesn't exist it also returns 404") {
-      Get(deputyUrl(nonExistentUuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(nonExistentUuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -33,7 +33,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     it("By default Contact has no deputy") {
       val uuid = postContactRequest()
 
-      Get(deputyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -62,7 +62,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
         status shouldBe StatusCodes.OK
       }
 
-      Get(deputyUrl(uuid)) ~> acceptPlain ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.NotAcceptable
       }
     }
@@ -75,7 +75,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
         status shouldBe StatusCodes.OK
       }
 
-      Get(deputyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[Deputy] shouldBe deputy
       }
@@ -90,7 +90,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
         status shouldBe StatusCodes.OK
       }
 
-      Get(deputyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[Deputy] shouldBe deputy
       }
@@ -99,7 +99,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
         status shouldBe StatusCodes.OK
       }
 
-      Get(deputyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[Deputy] shouldBe deputy2
       }
@@ -109,14 +109,14 @@ trait ChangeContactDeputyTest extends BaseTckTest {
   describe("DELETE /contacts/{id}/deputy") {
 
     it("When contact doesn't exist it is impossible to delete deputy") {
-      Delete(deputyUrl(nonExistentUuid)) ~> domofonRoute ~> check {
+      Delete(deputyUrl(nonExistentUuid)) ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
 
     it("Allows deleting even if there is no deputy set ") {
       val uuid = postContactRequest()
-      Delete(deputyUrl(uuid)) ~> domofonRoute ~> check {
+      Delete(deputyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
@@ -129,16 +129,16 @@ trait ChangeContactDeputyTest extends BaseTckTest {
         status shouldBe StatusCodes.OK
       }
 
-      Get(deputyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[Deputy] shouldBe deputy
       }
 
-      Delete(deputyUrl(uuid)) ~> domofonRoute ~> check {
+      Delete(deputyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(deputyUrl(uuid)) ~> acceptJson ~> domofonRoute ~> check {
+      Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound
       }
 

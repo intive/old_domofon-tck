@@ -16,7 +16,7 @@ object Runner extends App {
     }
 
     Try {
-      (new ExternalDomofonTck).execute(durations = true, stats = true, fullstacks = true)
+      (new ExternalDomofonTck).execute(durations = true, stats = true)
     }.getOrElse(sys.exit(1))
   }
 
