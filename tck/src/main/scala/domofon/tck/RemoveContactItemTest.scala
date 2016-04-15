@@ -8,7 +8,7 @@ trait RemoveContactItemTest extends BaseTckTest {
 
     it("When contact doesn't exist 404 is returned") {
 
-      Delete(s"/contacts/$nonExistentUuid") ~> domofonRoute ~> check {
+      Delete(s"/contacts/$nonExistentUuid") ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -16,7 +16,7 @@ trait RemoveContactItemTest extends BaseTckTest {
     it("Remove contact when one exists") {
       val uuid = postContactRequest()
 
-      Delete(s"/contacts/$uuid") ~> domofonRoute ~> check {
+      Delete(s"/contacts/$uuid") ~~> {
         status shouldBe StatusCodes.OK
       }
     }
