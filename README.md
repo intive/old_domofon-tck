@@ -18,8 +18,6 @@ You can also use same TCK against server written in any language or framework.
 
 Download `tck-runner` with all dependencies from [Github Releases](https://github.com/blstream/domofon-tck/releases) page.
 
-Unpack it:
-
 ```
 unzip tck-runner-*.zip
 ./tck-runner-*/bin/tck-runner http://localhost:8080
@@ -36,7 +34,7 @@ All tests use `ScalatestRouteTest` from akka-http testkit. To get started add SB
   ```
   resolvers += Resolver.bintrayRepo("lustefaniak", "domofon")
   
-  libraryDependencies += "com.blstream.domofon" %% "tck" %% "0.2.0" % "test"
+  libraryDependencies += "com.blstream.domofon" %% "tck" %% "0.2.2" % "test"
   ```
   
 **TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
@@ -55,7 +53,7 @@ After that all test cases will be executed against your implementation
 
 
 ## Mock server
-You need to have Java 8 installed to use the mock.
+You need to have Java 8 installed to use the mock. Or you can use [Docker image](#Docker images)
 
 Download `akka-http-mock-server` with all dependencies from [Github Releases](https://github.com/blstream/domofon-tck/releases) page.
 ```
@@ -69,3 +67,19 @@ You can use `--listen http://127.0.0.1:12345` option to override port on which m
 
 There might be more configuration options available in the future, you can check them using `--help` option.
 
+## Docker images
+
+Both `tck-runner` and `akka-http-mock-server` are available as docker images.
+
+To run mock server
+```
+docker run -p 8080:8080 --rm lustefaniak/domofon-akka-http-mock-server:0.2.2
+```
+
+Next you can run TCK suite using:
+
+```
+docker run --rm lustefaniak/tck-runner:0.2.2 http://localhost:8080
+```
+
+If you are using Docker for Mac or Docker for Windows, you might have to use `docker.local` instead of `localhost`.
