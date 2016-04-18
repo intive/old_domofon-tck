@@ -66,6 +66,7 @@ object ContactRequestValidator {
   def apply(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
     (field("email")(validEmail)(cr.notifyEmail) |@|
       field("name")(nonEmpty)(cr.name) |@|
+      field("phone")(nonEmpty)(cr.phone) |@|
       field("from")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _) => cr }
   }
 }
