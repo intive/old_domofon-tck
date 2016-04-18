@@ -2,12 +2,12 @@ package domofon.mock.akka
 
 case class ContactRequest(
   name: String,
-  company: Option[String],
+  company: Option[String] = None,
   notifyEmail: String,
   phone: String,
-  adminEmail: Option[String],
-  fromDate: Option[java.time.LocalDate],
-  tillDate: Option[java.time.LocalDate]
+  adminEmail: Option[String] = None,
+  fromDate: Option[java.time.LocalDate] = None,
+  tillDate: Option[java.time.LocalDate] = None
 )
 
 case object ContactRequest {
