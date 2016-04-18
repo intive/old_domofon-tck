@@ -53,7 +53,7 @@ After that all test cases will be executed against your implementation
 
 
 ## Mock server
-You need to have Java 8 installed to use the mock. Or you can use [Docker image](#Docker images)
+You need to have Java 8 installed to use the mock. Or you can use [Docker image](#docker-images)
 
 Download `akka-http-mock-server` with all dependencies from [Github Releases](https://github.com/blstream/domofon-tck/releases) page.
 ```
@@ -79,7 +79,7 @@ docker run -p 8080:8080 --rm lustefaniak/domofon-akka-http-mock-server:0.2.2
 Next you can run TCK suite using:
 
 ```
-docker run --rm lustefaniak/tck-runner:0.2.2 http://localhost:8080
+docker run --rm lustefaniak/domofon-tck-runner:0.2.2 http://localhost:8080
 ```
 
 If you are using Docker for Mac or Docker for Windows, you might have to use `docker.local` instead of `localhost`.
