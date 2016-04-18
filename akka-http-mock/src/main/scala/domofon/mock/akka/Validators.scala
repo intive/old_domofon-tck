@@ -23,9 +23,14 @@ object Validators {
     validation(value).leftMap(Functor[NonEmptyList].map(_)(msg => (fieldName, msg)))
   }
 
-  def nonEmpty: String => ValidatedNel[Message, String] = { s =>
+  def nonEmptyString: String => ValidatedNel[Message, String] = { s =>
     if (s.nonEmpty) Valid(s)
     else Invalid(NonEmptyList(s"string cannot be empty"))
+  }
+
+  def optional[A,B](validation: A => ValidatedNel[Message, B]): Option[A] => ValidatedNel[Message, Option[B]] = {
+    case Some(a) => validation(a).map(v => Option(v))
+    case None => Valid(None)
   }
 
   def validEmail: String => ValidatedNel[Message, String] = { email =>
@@ -64,9 +69,11 @@ object ContactRequestValidator {
 
 
   def apply(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
-    (field("email")(validEmail)(cr.notifyEmail) |@|
-      field("name")(nonEmpty)(cr.name) |@|
-      field("phone")(nonEmpty)(cr.phone) |@|
-      field("from")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _) => cr }
+     (field("email")(validEmail)(cr.notifyEmail) |@|
+      field("name")(nonEmptyString)(cr.name) |@|
+      field("phone")(nonEmptyString)(cr.phone) |@|
+      field("company")(optional(nonEmptyString))(cr.company) |@|
+      field("adminEmail")(optional(validEmail))(cr.adminEmail) |@|
+      field("from")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _, _, _, _) => cr }
   }
 }
