@@ -19,7 +19,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
   )
 
   private[this] def putContactDeputy(contactId: UUID, deputy: Deputy = contactDeputy()) = {
-    Put(deputyUrl(contactId), deputy.toJson) ~> domofonRoute
+    Put(deputyUrl(contactId), deputy.toJson) ~> acceptJson ~> domofonRoute
   }
 
   describe("GET /contacts/{id}/deputy") {
