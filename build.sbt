@@ -62,6 +62,11 @@ lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariform
   bintrayCredentialsFile := file(".bintray_credentials"),
   bintrayVcsUrl := Some("https://github.com/blstream/domofon-tck.git"),
   bintrayRepository := "domofon"
+) ++ Seq(
+  dockerBaseImage := "anapsix/alpine-java:jre8",
+  dockerUpdateLatest := true,
+  maintainer in Docker := "Lukasz Stefaniak <lustefaniak@gmail.com>",
+  dockerRepository := Some("lustefaniak")
 )
 
 lazy val `tck` =
@@ -88,6 +93,9 @@ lazy val `tck-runner` =
     .disablePlugins(SbtScalariform)
     .enablePlugins(GitVersioning, RevolverPlugin, JavaAppPackaging)
     .settings(commonSettings)
+    .settings(
+      packageName in Docker := "domofon-tck-runner"
+    )
     .dependsOn(`tck`)
 
 lazy val `akka-http-mock` =
@@ -104,7 +112,8 @@ lazy val `akka-http-mock` =
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion % "test"
       )
-    ).dependsOn(`tck` % "test")
+    )
+    .dependsOn(`tck` % "test")
 
 lazy val `akka-http-mock-server` =
   (project in file("akka-http-mock-server"))
@@ -114,6 +123,11 @@ lazy val `akka-http-mock-server` =
     .settings(
       libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0",
       libraryDependencies += "ch.megard" %% "akka-http-cors" % "0.1.1"
+    )
+    .settings(
+      dockerExposedPorts := List(8080),
+      packageName in Docker := "domofon-akka-http-mock-server",
+      dockerCmd := Seq("--listen", "http://0.0.0.0:8080")
     )
     .dependsOn(`akka-http-mock`)
 
@@ -137,7 +151,6 @@ lazy val root = (project in file("."))
   .settings(
     publish := {},
     run := run in `akka-http-mock-server`
-
   ).aggregate(`tck`, `tck-runner`, `akka-http-mock`, `akka-http-mock-server`)
 
 
