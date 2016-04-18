@@ -46,7 +46,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
   describe("PUT /contacts/{id}/important") {
 
     it("When contact doesn't exist it is impossible to change importance") {
-      Put(isImportantUrl(nonExistentUuid), IsImportant(false).toJson) ~~> {
+      Put(isImportantUrl(nonExistentUuid), IsImportant(false).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
@@ -54,11 +54,11 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("It is possible to set importance with PUT /contacts/{id}/important") {
       val uuid = postContactRequest()
 
-      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
+      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(isImportantUrl(uuid)) ~~> {
+      Get(isImportantUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe true
       }
@@ -67,20 +67,20 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("It is possible to change importance back to false with PUT /contacts/{id}/important") {
       val uuid = postContactRequest()
 
-      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
+      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(isImportantUrl(uuid)) ~~> {
+      Get(isImportantUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe true
       }
 
-      Put(isImportantUrl(uuid), IsImportant(false).toJson) ~~> {
+      Put(isImportantUrl(uuid), IsImportant(false).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
       }
 
-      Get(isImportantUrl(uuid)) ~~> {
+      Get(isImportantUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[IsImportant].isImportant shouldBe false
       }
@@ -90,7 +90,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
     it("Changed importance is reflected in GET /contacts/{id}") {
       val uuid = postContactRequest()
 
-      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
+      Put(isImportantUrl(uuid), IsImportant(true).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
       }
 
