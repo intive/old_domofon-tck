@@ -81,6 +81,9 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(c => c.toJson.prettyPrint)
   )
 
+  implicit val validationErrorFormat = jsonFormat2(ValidationError.apply)
+
+
 }
 
 object MockMarshallers extends MockMarshallers

@@ -13,11 +13,12 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Source
+import cats.data.Validated.{Invalid, Valid}
 import de.heikoseeberger.akkasse.{EventStreamMarshalling, ServerSentEvent}
 import spray.json._
 
 import scala.collection.mutable
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
@@ -109,10 +110,16 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                 json =>
                   Try(json.convertTo[ContactRequest]) match {
                     case Success(contact) =>
-                      val id = UUID.randomUUID()
-                      contacts.update(id, ContactResponse.from(id, contact))
-                      broadcastContactsUpdated
-                      complete(id)
+                      ContactRequestValidator(contact) match {
+                        case Valid(cr) =>
+                          val id = UUID.randomUUID()
+                          contacts.update(id, ContactResponse.from(id, contact))
+                          broadcastContactsUpdated
+                          complete(id)
+                        case Invalid(nel) =>
+                          complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
+                      }
+
                     case Failure(DeserializationException(msg, ex, fields)) =>
                       reject(MissingRequiredFieldsRejection(msg, fields))
                     case Failure(otherEx) =>
