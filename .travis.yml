@@ -19,9 +19,6 @@ script:
 
 jdk:
 - oraclejdk8
-notifications:
-  email:
-  - lukasz.stefaniak@blstream.com
 after_success:
 - bash <(curl -s https://codecov.io/bash)
 before_deploy:
