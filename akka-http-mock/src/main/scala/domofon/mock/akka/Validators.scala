@@ -54,12 +54,14 @@ object Validators {
         Invalid(NonEmptyList("either both dates must be defined or none"))
     }
   }
+
+  implicit val nelErrorSemigroup = SemigroupK[NonEmptyList].algebra[Error]
+
 }
 
 object ContactRequestValidator {
   import Validators._
 
-  implicit val nelErrorSemigroup = SemigroupK[NonEmptyList].algebra[Error]
 
   def apply(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
     (field("email")(validEmail)(cr.notifyEmail) |@|
