@@ -86,7 +86,7 @@ lazy val `tck` =
 lazy val `tck-runner` =
   (project in file("tck-runner"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, RevolverPlugin)
+    .enablePlugins(GitVersioning, RevolverPlugin, JavaAppPackaging)
     .settings(commonSettings)
     .dependsOn(`tck`)
 
@@ -109,7 +109,7 @@ lazy val `akka-http-mock` =
 lazy val `akka-http-mock-server` =
   (project in file("akka-http-mock-server"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, RevolverPlugin)
+    .enablePlugins(GitVersioning, RevolverPlugin, JavaAppPackaging)
     .settings(commonSettings)
     .settings(
       libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0",

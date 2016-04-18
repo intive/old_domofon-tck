@@ -1,33 +1,43 @@
 sudo: false
-
-branches:
-  only:
-    - master
-
 cache:
   directories:
-    - $HOME/.sbt
-    - $HOME/.ivy2
-
+  - $HOME/.sbt
+  - $HOME/.ivy2
 before_cache:
-    - find $HOME/.sbt -name "*.lock" | xargs rm
-    - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
-    - rm -r -f $HOME/.ivy2/local/
-
+- find $HOME/.sbt -name "*.lock" | xargs rm
+- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+- rm -r -f $HOME/.ivy2/local/
 language: scala
 script:
-  - sbt formatAll
-  - if [[ -n $(git status -s) ]]; then git status && echo 'You need to format your code!' && exit 1; fi
-  - ./.bintray_setup_credentials.sh
-  - sbt clean compileAll package coverage test coverageReport|| exit 1
-
+- sbt formatAll
+- if [[ -n $(git status -s) ]]; then git status && echo 'You need to format your code!'  && exit 1; fi
+- sbt clean coverage compileAll test coverageReport || exit 1
 jdk:
-  - oraclejdk8
-
+- oraclejdk8
 notifications:
   email:
-    - lukasz.stefaniak@blstream.com
-
+  - lukasz.stefaniak@blstream.com
 after_success:
-  - if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ -n "$TRAVIS_TAG" -o "$TRAVIS_BRANCH" == "master" ]; then sbt publish; fi
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
+before_deploy:
+  - sbt universal:packageBin
+  - export AKKA_HTTP_MOCK_PACKAGE=$(ls akka-http-mock-server/target/universal/akka-http-mock-server-*.zip)
+  - export TCK_RUNNER_PACKAGE=$(ls tck-runner/target/universal/tck-runner-*.zip)
+deploy:
+- provider: releases
+  api_key:
+    secure: J6ShjU9iQIawYgfiA3D9WDS8/zcYTN9yYg7F+wo/VJk6M0R6ky/lgqlY+UX/MZWJ6ofB4pUtpU2Xo5+UX49TjT6dukw+JBkOxg/9x1pDFw2V/BuDBmDFVBj6D19oyvsWoF7h2OlhLrphWXHsKHN84GwWlnnoISE6S8gfK4d3LvTc2ieL1Z7AVFTVNc2Q/vN6dAZjxLTS0mmj7nJgwV+JCtx83/6eNsr9ms6VY72PpRZ6/iO3af+tWtAk8ABGn7PaeQJ/5mM/PWeSW73hhd6LsFHFeLz+C/E++65JpUJCZOKFygD0eX/zuBmCu7nZ19pv6/IA63gSNgOR5v4OJI5sAnME3p0Aw8p6oBb0gvlbPseP44S/w2iEoTwIorP8awq7/MBpxUwaemXCEYK1FIDdyP3nothXHewoJp+OgAlLnVHLMMRz7lMzRSgyIkrauuZSNxbuUMdtIefEiFH3LVZkbGAIVimU0oR+eP8YVCPnLW39WUdpYm5WhV8a0grk87gnfceBkB1lEiXhwU/4BsF/lKHUe60yWVc6FgUecU+5GG3q8db6IKGe6wxRqRNFxcRr+kPtiED3XVUNH12rvZjbw3CQ610LNL0dTztZUJuqrgBskxAmtB6P9ESVBm9kU4ubec3ogBRhECcCFeNF4QlCjNQcgca3U7PtDkRBGhT1Fg4=
+  file:
+  - "${AKKA_HTTP_MOCK_PACKAGE}"
+  - "${TCK_RUNNER_PACKAGE}"
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
+- provider: script
+  script: scripts/deploy_bintray.sh
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
+
