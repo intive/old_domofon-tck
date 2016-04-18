@@ -79,7 +79,7 @@ docker run -p 8080:8080 --rm lustefaniak/domofon-akka-http-mock-server:0.2.2
 Next you can run TCK suite using:
 
 ```
-docker run -p 8080:8080 --rm lustefaniak/tck-runner:0.2.2 http://localhost:8080
+docker run --rm lustefaniak/tck-runner:0.2.2 http://localhost:8080
 ```
 
 If you are using Docker for Mac or Docker for Windows, you might have to use `docker.local` instead of `localhost`.
