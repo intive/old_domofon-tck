@@ -88,12 +88,6 @@ object Server extends App {
           System.exit(1)
       }
 
-      println("Press ENTER to stop mock server")
-      scala.io.StdIn.readLine()
-
-      Await.result(system.terminate(), Duration.Inf)
-      sys.exit(0)
-
     case None =>
       sys.exit(1)
   }
