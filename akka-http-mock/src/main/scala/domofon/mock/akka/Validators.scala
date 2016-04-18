@@ -28,9 +28,9 @@ object Validators {
     else Invalid(NonEmptyList(s"string cannot be empty"))
   }
 
-  def optional[A,B](validation: A => ValidatedNel[Message, B]): Option[A] => ValidatedNel[Message, Option[B]] = {
+  def optional[A, B](validation: A => ValidatedNel[Message, B]): Option[A] => ValidatedNel[Message, Option[B]] = {
     case Some(a) => validation(a).map(v => Option(v))
-    case None => Valid(None)
+    case None    => Valid(None)
   }
 
   def validEmail: String => ValidatedNel[Message, String] = { email =>
@@ -67,9 +67,8 @@ object Validators {
 object ContactRequestValidator {
   import Validators._
 
-
   def apply(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
-     (field("email")(validEmail)(cr.notifyEmail) |@|
+    (field("email")(validEmail)(cr.notifyEmail) |@|
       field("name")(nonEmptyString)(cr.name) |@|
       field("phone")(nonEmptyString)(cr.phone) |@|
       field("company")(optional(nonEmptyString))(cr.company) |@|

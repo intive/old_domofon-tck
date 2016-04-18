@@ -83,7 +83,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
 
   implicit val validationErrorFormat = jsonFormat2(ValidationError.apply)
 
-
 }
 
 object MockMarshallers extends MockMarshallers
