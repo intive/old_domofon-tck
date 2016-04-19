@@ -73,6 +73,6 @@ object ContactRequestValidator {
       field("phone")(nonEmptyString)(cr.phone) |@|
       field("company")(optional(nonEmptyString))(cr.company) |@|
       field("adminEmail")(optional(validEmail))(cr.adminEmail) |@|
-      field("from")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _, _, _, _) => cr }
+      field("fromDate")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _, _, _, _) => cr }
   }
 }

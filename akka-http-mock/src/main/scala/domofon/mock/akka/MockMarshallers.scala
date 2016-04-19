@@ -1,5 +1,6 @@
 package domofon.mock.akka
 
+import java.time.format.DateTimeParseException
 import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID
 
@@ -10,10 +11,18 @@ import spray.json._
 
 trait MockMarshallers extends DefaultJsonProtocol {
 
-  implicit val localDateJsonWriter = lift(new JsonWriter[LocalDate] {
-
+  implicit val localDateJsonWriter = new JsonFormat[LocalDate] {
+    override def read(json: JsValue): LocalDate = {
+      val JsString(s) = json
+      try {
+        LocalDate.parse(s)
+      } catch {
+        case ex: DateTimeParseException =>
+          throw new DeserializationException(msg = ex.getMessage)
+      }
+    }
     override def write(obj: LocalDate) = JsString(obj.toString)
-  })
+  }
 
   implicit val localDateTimeJsonWriter = lift(new JsonWriter[LocalDateTime] {
     override def write(obj: LocalDateTime) = JsString(obj.toString)

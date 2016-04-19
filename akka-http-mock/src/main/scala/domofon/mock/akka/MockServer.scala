@@ -13,6 +13,7 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.scaladsl.Source
 import akka.stream.{Materializer, OverflowStrategy}
+import cats.data.Validated.{Invalid, Valid}
 import de.heikoseeberger.akkasse.{EventStreamMarshalling, ServerSentEvent}
 import spray.json._
 
@@ -207,6 +208,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
 
     }
   }
+
   private def jsonAs[T: JsonReader](json: JsObject)(f: T => Route): Route = {
     Try(json.convertTo[T]) match {
       case Success(x) =>

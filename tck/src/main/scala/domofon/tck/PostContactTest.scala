@@ -1,5 +1,6 @@
 package domofon.tck
 
+import java.time.LocalDate
 import java.util.UUID
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -46,6 +47,29 @@ trait PostContactTest extends BaseTckTest {
           status shouldBe StatusCodes.UnprocessableEntity
         }
       }
+    }
+
+    it("Discards json with illegal date values") {
+      import DomofonMarshalling._
+
+      val validContactRequest = contactRequest().toJson.asJsObject
+      val values = Seq(
+        (None, Some(LocalDate.now().toString)),
+        (Some(LocalDate.now().toString), None),
+        (Some("2012-12-12"), Some("2012-11-11"))
+      ).map(x => (x._1.toJson, x._2.toJson)) ++ Seq(
+          (JsString("2000.01.1"), JsString("2000-01")),
+          (JsString("02/29/2007"), JsNull)
+        )
+
+      val dateFields = Table(("fromDate", "tillDate"), values: _*)
+      forAll(dateFields) { (from, till) =>
+        val invalidContactRequest = JsObject(validContactRequest.fields ++ Map("fromDate" -> from, "tillDate" -> till))
+        Post("/contacts", invalidContactRequest.toJson) ~~> {
+          status shouldBe StatusCodes.UnprocessableEntity
+        }
+      }
+
     }
 
     it("Accepts proper Contact entity, returns text/plain UUID") {
