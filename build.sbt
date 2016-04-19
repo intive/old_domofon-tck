@@ -104,12 +104,15 @@ lazy val `akka-http-mock` =
     .enablePlugins(GitVersioning)
     .settings(commonSettings)
     .settings(
-      libraryDependencies ++= Seq(
+      resolvers += Resolver.bintrayRepo("hmrc", "releases"),
+        libraryDependencies ++= Seq(
         "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
         "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaVersion,
-        "de.heikoseeberger" %% "akka-sse" % "1.7.2"
-      ),
-      libraryDependencies ++= Seq(
+        "de.heikoseeberger" %% "akka-sse" % "1.7.2",
+        "org.typelevel"     %% "cats" % "0.4.1",
+        "uk.gov.hmrc"       %% "emailaddress" % "1.1.0"
+        ),
+        libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion % "test"
       )
     )

@@ -5,20 +5,20 @@ import java.util.UUID
 
 import akka.actor._
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.client.RequestBuilding._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.util.FastFuture
-import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Source
+import akka.stream.{Materializer, OverflowStrategy}
+import cats.data.Validated.{Invalid, Valid}
 import de.heikoseeberger.akkasse.{EventStreamMarshalling, ServerSentEvent}
 import spray.json._
 
-import scala.collection.mutable
-import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait MockServer extends Directives with SprayJsonSupport with MockMarshallers with EventStreamMarshalling {
@@ -105,19 +105,19 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
             complete(contacts.values.map(_.toJson(contactWithoutMessageWriter)))
           } ~
             post {
-              entity(as[JsObject]) {
-                json =>
-                  Try(json.convertTo[ContactRequest]) match {
-                    case Success(contact) =>
+              entity(as[JsObject]) { json =>
+                jsonAs[ContactRequest](json) { cr =>
+                  ContactRequestValidator(cr) match {
+                    case Valid(contact) =>
                       val id = UUID.randomUUID()
-                      contacts.update(id, ContactResponse.from(id, contact))
-                      broadcastContactsUpdated
+                      contacts.update(id, ContactResponse.from(id, cr))
+                      broadcastContactsUpdated()
                       complete(id)
-                    case Failure(DeserializationException(msg, ex, fields)) =>
-                      reject(MissingRequiredFieldsRejection(msg, fields))
-                    case Failure(otherEx) =>
-                      reject()
+                    case Invalid(nel) =>
+                      complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
                   }
+
+                }
               }
             }
         } ~
@@ -137,13 +137,13 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       entity(as[Deputy]) {
                         deputy =>
                           contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
-                          broadcastContactsUpdated
+                          broadcastContactsUpdated()
                           complete(StatusCodes.OK)
                       }
                     } ~
                     delete {
                       contacts.update(contact.id, contact.copy(deputy = None))
-                      broadcastContactsUpdated
+                      broadcastContactsUpdated()
                       complete(StatusCodes.OK)
                     }
                 } ~
@@ -152,11 +152,12 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       complete(IsImportant(contact.isImportant).toJson)
                     } ~
                       put {
-                        entity(as[IsImportant]) {
-                          imp =>
+                        entity(as[JsObject]) { json =>
+                          jsonAs[IsImportant](json) { imp =>
                             contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
-                            broadcastContactsUpdated
+                            broadcastContactsUpdated()
                             complete(StatusCodes.OK)
+                          }
                         }
                       }
                   } ~
@@ -167,7 +168,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                           nextNotificationAllowedAt = Some(LocalDateTime.now.plusSeconds(notifyDelay.toSeconds))
                         )
                         contacts.update(contact.id, updatedContact)
-                        broadcastContactsUpdated
+                        broadcastContactsUpdated()
                         onComplete(sendNotifications(updatedContact)) {
                           case Success(result) => complete(StatusCodes.OK)
                           case Failure(f)      => throw f
@@ -205,6 +206,17 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
             }
           }
 
+    }
+  }
+
+  private def jsonAs[T: JsonReader](json: JsObject)(f: T => Route): Route = {
+    Try(json.convertTo[T]) match {
+      case Success(x) =>
+        f(x)
+      case Failure(DeserializationException(msg, ex, fields)) =>
+        reject(MissingRequiredFieldsRejection(msg, fields))
+      case Failure(otherEx) =>
+        reject()
     }
   }
 
