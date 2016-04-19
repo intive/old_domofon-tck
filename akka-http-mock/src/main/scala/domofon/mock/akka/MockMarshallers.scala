@@ -58,7 +58,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
   implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
   implicit val missingFieldsErrorFormat = jsonFormat2(MissingFieldsError.apply)
   implicit val tooManyRequestsErrorFormat = jsonFormat2(TooManyRequestsError.apply)
-  implicit val contactMessageUpdatedFormat = jsonFormat1(ContactMessageUpdated.apply)
 
   val contactWithoutMessageWriter = new JsonWriter[ContactResponse] {
     override def write(obj: ContactResponse): JsValue = {
@@ -69,7 +68,7 @@ trait MockMarshallers extends DefaultJsonProtocol {
 
   implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),
-    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(uuid => s"""{"id":"${uuid}"}""")
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(uuid => JsObject(("id", JsString(uuid.toString))).prettyPrint)
   )
 
   implicit val missingFieldsErrorMarshaller: ToEntityMarshaller[MissingFieldsError] = Marshaller.oneOf(
@@ -85,9 +84,9 @@ trait MockMarshallers extends DefaultJsonProtocol {
   implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =
     PredefinedFromEntityUnmarshallers.stringUnmarshaller.map(UUID.fromString(_))
 
-  implicit val contactMessageUpdatedMarshaller: ToEntityMarshaller[ContactMessageUpdated] = Marshaller.oneOf(
-    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(c => c.status),
-    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(c => c.toJson.prettyPrint)
+  implicit val operationResultMarshaller: ToEntityMarshaller[OperationResult] = Marshaller.oneOf(
+    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(r => r.status),
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(r => JsObject(("status", JsString(r.status))).prettyPrint)
   )
 
   implicit val validationErrorFormat = jsonFormat2(ValidationError.apply)
