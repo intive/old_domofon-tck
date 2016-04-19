@@ -5,7 +5,8 @@ import java.util.UUID
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
-import domofon.tck.entities.{ValidationFieldsError, PostContactResponse}
+import domofon.tck.entities.{PostContactResponse, ValidationFieldsError}
+import org.scalatest.prop.TableDrivenPropertyChecks._
 import spray.json._
 
 trait PostContactTest extends BaseTckTest {
@@ -27,6 +28,23 @@ trait PostContactTest extends BaseTckTest {
     it("Discards empty json object") {
       Post("/contacts", JsObject()) ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
+      }
+    }
+
+    it("Discards json with illegal string values") {
+      val validContactRequest = contactRequest().toJson.asJsObject
+      val stringFields = Seq("name", "company", "notifyEmail", "phone", "adminEmail")
+      val illegalStringValues = Seq(JsNumber(42), JsString(""), JsBoolean(false), JsObject.empty)
+      val cartesianProduct = for {
+        field <- stringFields
+        value <- illegalStringValues
+      } yield (field, value)
+      val invalidParameters = Table(("field", "value"), cartesianProduct: _*)
+      forAll(invalidParameters) { (field, value) =>
+        val invalidContactRequest = JsObject(validContactRequest.fields.updated(field, value))
+        Post("/contacts", invalidContactRequest.toJson) ~~> {
+          status shouldBe StatusCodes.UnprocessableEntity
+        }
       }
     }
 

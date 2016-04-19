@@ -5,7 +5,8 @@ import java.util.UUID
 import DomofonMarshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
-import domofon.tck.entities.{GetContact, IsImportant, Deputy}
+import domofon.tck.entities.{Deputy, GetContact, IsImportant}
+import org.scalatest.prop.TableDrivenPropertyChecks._
 import spray.json._
 
 trait ChangeContactIsImportantTest extends BaseTckTest {
@@ -63,7 +64,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
       }
     }
 
-    it("It is possible to change importance back to falsewith PUT /contacts/{id}/important") {
+    it("It is possible to change importance back to false with PUT /contacts/{id}/important") {
       val uuid = postContactRequest()
 
       Put(isImportantUrl(uuid), IsImportant(true).toJson) ~~> {
@@ -105,6 +106,31 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
 
       Get(isImportantUrl(uuid)) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.NotAcceptable
+      }
+    }
+
+    it("Discards request if 'isImportant' parameter is missing") {
+      val uuid = postContactRequest()
+      Put(isImportantUrl(uuid), JsObject.empty.toJson) ~~> {
+        status shouldBe StatusCodes.UnprocessableEntity
+      }
+    }
+
+    it("Discards request if 'isImportant' parameter has wrong type") {
+      val uuid = postContactRequest()
+      val illegalBooleanValues = Table(
+        "isImportant",
+        JsObject.empty,
+        JsString("true"),
+        JsString("false"),
+        JsString(""),
+        JsNumber(0)
+      )
+      forAll(illegalBooleanValues) { value =>
+        val illegalRequestBody = JsObject(("isImportant", value)).toJson
+        Put(isImportantUrl(uuid), illegalRequestBody) ~~> {
+          status shouldBe StatusCodes.UnprocessableEntity
+        }
       }
     }
   }
