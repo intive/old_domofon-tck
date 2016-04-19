@@ -105,11 +105,17 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
           } ~
             post {
               entity(as[JsObject]) { json =>
-                jsonAs[ContactRequest](json) { contact =>
-                  val id = UUID.randomUUID()
-                  contacts.update(id, ContactResponse.from(id, contact))
-                  broadcastContactsUpdated()
-                  complete(id)
+                jsonAs[ContactRequest](json) { cr =>
+                  ContactRequestValidator(cr) match {
+                    case Valid(contact) =>
+                      val id = UUID.randomUUID()
+                      contacts.update(id, ContactResponse.from(id, cr))
+                      broadcastContactsUpdated()
+                      complete(id)
+                    case Invalid(nel) =>
+                      complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
+                  }
+
                 }
               }
             }
