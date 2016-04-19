@@ -104,19 +104,13 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
             complete(contacts.values.map(_.toJson(contactWithoutMessageWriter)))
           } ~
             post {
-              entity(as[JsObject]) {
-                json =>
-                  Try(json.convertTo[ContactRequest]) match {
-                    case Success(contact) =>
-                      val id = UUID.randomUUID()
-                      contacts.update(id, ContactResponse.from(id, contact))
-                      broadcastContactsUpdated()
-                      complete(id)
-                    case Failure(DeserializationException(msg, ex, fields)) =>
-                      reject(MissingRequiredFieldsRejection(msg, fields))
-                    case Failure(otherEx) =>
-                      reject()
-                  }
+              entity(as[JsObject]) { json =>
+                jsonAs[ContactRequest](json) { contact =>
+                  val id = UUID.randomUUID()
+                  contacts.update(id, ContactResponse.from(id, contact))
+                  broadcastContactsUpdated()
+                  complete(id)
+                }
               }
             }
         } ~
@@ -151,18 +145,12 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       complete(IsImportant(contact.isImportant).toJson)
                     } ~
                       put {
-                        entity(as[JsObject]) {
-                          json =>
-                            Try(json.convertTo[IsImportant]) match {
-                              case Success(imp) =>
-                                contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
-                                broadcastContactsUpdated()
-                                complete(StatusCodes.OK)
-                              case Failure(DeserializationException(msg, ex, fields)) =>
-                                reject(MissingRequiredFieldsRejection(msg, fields))
-                              case Failure(otherEx) =>
-                                reject()
-                            }
+                        entity(as[JsObject]) { json =>
+                          jsonAs[IsImportant](json) { imp =>
+                            contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
+                            broadcastContactsUpdated()
+                            complete(StatusCodes.OK)
+                          }
                         }
                       }
                   } ~
@@ -211,6 +199,16 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
             }
           }
 
+    }
+  }
+  private def jsonAs[T: JsonReader](json: JsObject)(f: T => Route): Route = {
+    Try(json.convertTo[T]) match {
+      case Success(x) =>
+        f(x)
+      case Failure(DeserializationException(msg, ex, fields)) =>
+        reject(MissingRequiredFieldsRejection(msg, fields))
+      case Failure(otherEx) =>
+        reject()
     }
   }
 
