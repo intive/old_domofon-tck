@@ -34,7 +34,7 @@ trait PostContactTest extends BaseTckTest {
     it("Discards json with illegal string values") {
       val validContactRequest = contactRequest().toJson.asJsObject
       val stringFields = Seq("name", "company", "notifyEmail", "phone", "adminEmail")
-      val illegalStringValues = Seq(JsNull, JsNumber(42), JsString(""), JsBoolean(false), JsObject.empty)
+      val illegalStringValues = Seq(JsNumber(42), JsString(""), JsBoolean(false), JsObject.empty)
       val cartesianProduct = for {
         field <- stringFields
         value <- illegalStringValues
