@@ -9,7 +9,8 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.stream.Materializer
-import domofon.mock.akka.utils.{MockMarshallers, Helpers, RejectionsSupport}
+import cats.data.Validated.{Invalid, Valid}
+import domofon.mock.akka.utils._
 import Helpers._
 import RejectionsSupport.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
 import domofon.mock.akka.entities._
@@ -54,9 +55,15 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport {
         post {
           entity(as[JsObject]) { json =>
             jsonAs[CategoryRequest](json) { cr =>
-              val id = UUID.randomUUID()
-              categories.update(id, CategoryResponse.from(id, cr))
-              complete(CategoryCreated(id))
+              CategoryRequestValidator(cr) match {
+                case Valid(contact) =>
+                  val id = UUID.randomUUID()
+                  val secret = UUID.randomUUID()
+                  categories.update(id, CategoryResponse.from(id, cr))
+                  complete(CategoryCreated(id))
+                case Invalid(nel) =>
+                  complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
+              }
             }
           }
         }
