@@ -61,11 +61,13 @@ trait MockServer extends Directives
 
 case object MockServer {
 
-  def apply(actorSystem: ActorSystem, mat: Materializer): MockServer = {
+  def apply(serverAddress: String, actorSystem: ActorSystem, mat: Materializer): MockServer = {
     new MockServer {
       override implicit def system: ActorSystem = actorSystem
 
       override implicit def materializer: Materializer = mat
+
+      override def serverHostnameAndPort: String = serverAddress
     }
   }
 
