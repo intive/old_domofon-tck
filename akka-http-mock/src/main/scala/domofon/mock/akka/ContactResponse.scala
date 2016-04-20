@@ -5,6 +5,7 @@ import java.util.UUID
 
 case class ContactResponse(
   id: UUID,
+  secret: UUID,
   name: String,
   company: Option[String],
   notifyEmail: String,
@@ -20,9 +21,10 @@ case class ContactResponse(
 
 case object ContactResponse {
 
-  def from(id: UUID, req: ContactRequest): ContactResponse = {
+  def from(id: UUID, secret: UUID, req: ContactRequest): ContactResponse = {
     ContactResponse(
       id,
+      secret,
       req.name,
       req.company,
       req.notifyEmail,

@@ -51,7 +51,7 @@ trait MockMarshallers extends DefaultJsonProtocol {
     }
   }
 
-  implicit val contactResponseFormat = jsonFormat12(ContactResponse.apply)
+  implicit val contactResponseFormat = jsonFormat13(ContactResponse.apply)
 
   implicit val categoryRequestFormat = new RootJsonFormat[CategoryRequest] {
     private[this] val autoFormat = jsonFormat4(CategoryRequest.apply)
@@ -73,16 +73,16 @@ trait MockMarshallers extends DefaultJsonProtocol {
 
   implicit val categoryResponseFormat = jsonFormat6(CategoryResponse.apply)
 
-  implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
   implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
   implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
   implicit val missingFieldsErrorFormat = jsonFormat2(MissingFieldsError.apply)
   implicit val tooManyRequestsErrorFormat = jsonFormat2(TooManyRequestsError.apply)
 
-  val contactWithoutMessageWriter = new JsonWriter[ContactResponse] {
+  val ContatResponseHiddenFields = Seq("message", "secret")
+  val contactPublicResponseWriter = new JsonWriter[ContactResponse] {
     override def write(obj: ContactResponse): JsValue = {
       val json = obj.toJson(contactResponseFormat).asJsObject
-      JsObject(json.fields.filterKeys(_ != "message"))
+      JsObject(json.fields -- ContatResponseHiddenFields)
     }
   }
 

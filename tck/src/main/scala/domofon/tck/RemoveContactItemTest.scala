@@ -1,6 +1,7 @@
 package domofon.tck
 
 import akka.http.scaladsl.model.StatusCodes
+import domofon.tck.BaseTckTest.ContactCreationResult
 
 trait RemoveContactItemTest extends BaseTckTest {
 
@@ -8,15 +9,15 @@ trait RemoveContactItemTest extends BaseTckTest {
 
     it("When contact doesn't exist 404 is returned") {
 
-      Delete(s"/contacts/$nonExistentUuid") ~~> {
+      Delete(s"/contacts/$nonExistentUuid") ~> authorizeWithSecret(nonExistentUuid) ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
 
     it("Remove contact when one exists") {
-      val uuid = postContactRequest()
+      val ContactCreationResult(uuid, secret) = postContactRequest()
 
-      Delete(s"/contacts/$uuid") ~~> {
+      Delete(s"/contacts/$uuid") ~> authorizeWithSecret(secret) ~~> {
         status shouldBe StatusCodes.OK
       }
     }

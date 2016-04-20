@@ -22,14 +22,14 @@ trait SendContactNotificationTest extends BaseTckTest {
     }
 
     it("It sends notification if it exists") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
 
     it("It discards notifications happening too often") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
@@ -40,7 +40,7 @@ trait SendContactNotificationTest extends BaseTckTest {
     }
 
     it("It tells when it is possible to retry sending notification as application/json") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }

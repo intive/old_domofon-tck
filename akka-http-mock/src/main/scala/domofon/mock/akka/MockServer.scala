@@ -18,7 +18,8 @@ trait MockServer extends Directives
     with EventStreamMarshalling
     with SwaggerRoute
     with CategoriesRoute
-    with ContactsRoute {
+    with ContactsRoute
+    with Auth {
 
   implicit def system: ActorSystem
 
@@ -47,7 +48,7 @@ trait MockServer extends Directives
     extractRequest { req =>
       //println(req) //for easier debugging of problems you can uncomment that
       domofonYmlRoute ~
-        categoriesRoute(categories) ~ contactsRoute(contacts, categories) ~
+        categoriesRoute(categories) ~ contactsRoute(contacts, categories) ~ adminSessionRoutes ~
         pathEndOrSingleSlash {
           get {
             complete("Mock Server is running, check documentation available at: http://blstream.github.io/domofon-api/")

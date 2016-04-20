@@ -1,6 +1,7 @@
 package domofon.tck
 
 import akka.http.scaladsl.model.StatusCodes
+import domofon.tck.BaseTckTest.ContactCreationResult
 import spray.json._
 
 trait ContactMessageTest extends BaseTckTest {
@@ -13,7 +14,7 @@ trait ContactMessageTest extends BaseTckTest {
     }
 
     it("Should return default message") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
       Get(s"/contacts/${uuid}/message") ~~> {
         status shouldBe StatusCodes.OK
       }
@@ -23,31 +24,31 @@ trait ContactMessageTest extends BaseTckTest {
 
   describe("PUT /contact/{id}/message") {
     it("should fail with 404 for non-existent contact") {
-      Put(s"/contacts/${nonExistentUuid}/message").withEntity("Got a package for ya!") ~~> {
+      Put(s"/contacts/${nonExistentUuid}/message").withEntity("Got a package for ya!") ~> authorizeWithSecret(nonExistentUuid) ~~> {
         status shouldBe StatusCodes.NotFound
       }
     }
 
     it("should update message for existing contact, respond with String") {
-      val uuid = postContactRequest()
-      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> acceptPlain ~~> {
+      val ContactCreationResult(uuid, secret) = postContactRequest()
+      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> authorizeWithSecret(secret) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String] should equal("OK")
       }
     }
 
     it("should update message for existing contact, respond with JSON") {
-      val uuid = postContactRequest()
-      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> acceptJson ~~> {
+      val ContactCreationResult(uuid, secret) = postContactRequest()
+      Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> authorizeWithSecret(secret) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String].parseJson.asJsObject.fields("status") should equal(JsString("OK"))
       }
     }
 
     it("Updated message could be retrieved") {
-      val uuid = postContactRequest()
+      val ContactCreationResult(uuid, secret) = postContactRequest()
       val message = "Got a package for ya!"
-      Put(s"/contacts/$uuid/message").withEntity(message) ~> acceptJson ~~> {
+      Put(s"/contacts/$uuid/message").withEntity(message) ~> authorizeWithSecret(secret) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String].parseJson.asJsObject.fields("status") should equal(JsString("OK"))
       }

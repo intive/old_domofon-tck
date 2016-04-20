@@ -15,3 +15,5 @@ trait DomofonTck extends BaseTckTest
   with GetCategoriesTest
   with SendCategoryNotificationTest
   with RemoveCategoryItemTest
+  with AdminLoginTest
+  with AdminOpsTest
