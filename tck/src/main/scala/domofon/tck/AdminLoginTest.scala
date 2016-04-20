@@ -5,47 +5,47 @@ import akka.http.scaladsl.model.headers.{BasicHttpCredentials, OAuth2BearerToken
 
 trait AdminLoginTest extends BaseTckTest with AdminCredentials {
 
-  describe("GET /login") {
+  describe("GET /session") {
     it("should respond with Unauthorized for missing credentials") {
-      Get("/login") ~~> {
+      Get("/session") ~~> {
         status should equal(StatusCodes.Unauthorized)
       }
     }
     it("should respond with Unauthorized for wrong credentials") {
-      Get("/login") ~> addCredentials(BasicHttpCredentials("cypher", "ignorance is bliss")) ~~> {
+      Get("/session") ~> addCredentials(BasicHttpCredentials("cypher", "ignorance is bliss")) ~~> {
         status should equal(StatusCodes.Unauthorized)
       }
     }
     it("should respond with a token of an admin session for correct credentials via Basic") {
-      Get("/login") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
+      Get("/session") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
         status should equal(StatusCodes.OK)
       }
     }
   }
 
-  describe("GET /logout") {
+  describe("DELETE /session") {
     it("should respond with Unauthorized for missing admin token") {
-      Get("/logout") ~~> {
+      Get("/session") ~~> {
         status should equal(StatusCodes.Unauthorized)
       }
     }
     it("should respond with Unauthorized for wrong admin token") {
-      Get("/logout") ~> addCredentials(OAuth2BearerToken(nonExistentUuid.toString)) ~~> {
+      Get("/session") ~> addCredentials(OAuth2BearerToken(nonExistentUuid.toString)) ~~> {
         status should equal(StatusCodes.Unauthorized)
       }
     }
     it("should invalidate session for valid admin token") {
       var adminToken = nonExistentUuid.toString
-      Get("/login") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
+      Get("/session") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
         status should equal(StatusCodes.OK)
         adminToken = responseAs[String]
       }
 
-      Get("/logout") ~> addCredentials(OAuth2BearerToken(adminToken)) ~~> {
+      Delete("/session") ~> addCredentials(OAuth2BearerToken(adminToken)) ~~> {
         status should equal(StatusCodes.OK)
       }
 
-      Get("/logout") ~> addCredentials(OAuth2BearerToken(adminToken)) ~~> {
+      Delete("/session") ~> addCredentials(OAuth2BearerToken(adminToken)) ~~> {
         status should equal(StatusCodes.Unauthorized)
       }
     }
@@ -59,7 +59,7 @@ trait AdminCredentials { self: BaseTckTest =>
 
   def loginAdmin: AdminToken = {
     var adminToken = nonExistentUuid.toString
-    Get("/login") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
+    Get("/session") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
       status should equal(StatusCodes.OK)
       adminToken = responseAs[AdminToken]
     }

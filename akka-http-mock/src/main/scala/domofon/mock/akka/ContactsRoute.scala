@@ -24,6 +24,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
+  self: Auth =>
 
   implicit def system: ActorSystem
 
@@ -34,32 +35,6 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
   def notifyDelay: FiniteDuration
 
   def sendNotifications(contactResponse: ContactResponse): Future[NotificationResult]
-
-  private[this] def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[UUID] = {
-    case p: Credentials.Provided =>
-      val isSecret = p.verify(contactResponse.secret.toString)
-      val isAdmin = p.verify(adminSession.toString)
-      if (isSecret || isAdmin) Some(contactResponse.id) else None
-    case _ => None
-  }
-
-  private[this] def authenticateContactSecretOrAdmin(contactResponse: ContactResponse)(r: Route): Route = {
-    authenticateOAuth2("Domofon", contactSecretAuthenticator(contactResponse)) { _ => r }
-  }
-
-  val (adminLogin, adminPass) = ("admin", "Z1ON0101") // todo read from config/env
-  @volatile private[this] var adminSession = UUID.randomUUID()
-
-  private[this] def authenticateAdminUserPass: AuthenticatorPF[UUID] = {
-    case p @ Credentials.Provided(login) if p.verify(adminPass) && adminLogin == login =>
-      adminSession = UUID.randomUUID()
-      adminSession
-  }
-
-  private[this] def authenticateAdminSecret: AuthenticatorPF[UUID] = {
-    case p: Credentials.Provided if p.verify(adminSession.toString) =>
-      adminSession
-  }
 
   def contactsRoute(
     contacts: scala.collection.concurrent.TrieMap[UUID, ContactResponse],
@@ -187,20 +162,6 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                   }
                 }
             }
-        }
-
-      } ~ path("login") {
-        get {
-          authenticateBasicPF("Domofon Admin", authenticateAdminUserPass) { adminToken =>
-            complete(adminToken)
-          }
-        }
-      } ~ path("logout") {
-        get {
-          authenticateOAuth2PF("Domofon Admin", authenticateAdminSecret) { _ =>
-            adminSession = UUID.randomUUID()
-            complete(StatusCodes.OK)
-          }
         }
 
       }
