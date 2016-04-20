@@ -36,18 +36,11 @@ trait Auth {
       adminSession
   }
 
-  lazy val adminSessionRoutes = path("session") {
+  lazy val adminSessionRoutes = path("login") {
     get {
       authenticateBasicPF("Domofon Admin", authenticateAdminUserPass) { adminToken =>
         complete(adminToken)
       }
-    } ~
-      delete {
-        authenticateOAuth2PF("Domofon Admin", authenticateAdminSecret) { _ =>
-          adminSession = UUID.randomUUID()
-          complete(StatusCodes.OK)
-        }
-      }
-
+    }
   }
 }
