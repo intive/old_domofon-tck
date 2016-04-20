@@ -54,7 +54,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
 
     path("contacts") {
       get {
-        complete(contacts.values.map(_.toJson(contactWithoutMessageWriter)))
+        complete(contacts.values.map(_.toJson(contactPublicResponseWriter)))
       } ~
         post {
           entity(as[JsObject]) { json =>
@@ -62,8 +62,8 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
               ContactRequestValidator(cr) match {
                 case Valid(contact) =>
                   val id = UUID.randomUUID()
-                  contacts.update(id, ContactResponse.from(id, cr))
-                  broadcastContactsUpdated()
+                  val secret = UUID.randomUUID()
+                  contacts.update(id, ContactResponse.from(id, secret, cr))
                   complete(id)
                 case Invalid(nel) =>
                   complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
@@ -142,7 +142,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
             } ~
             pathEndOrSingleSlash {
               get {
-                complete(contact.toJson(contactWithoutMessageWriter))
+                complete(contact.toJson(contactPublicResponseWriter))
               } ~
                 delete {
                   contacts.remove(contact.id)
