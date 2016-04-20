@@ -9,7 +9,7 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.testkit._
-import domofon.tck.entities.{EntityCreatedWithSecret, PostCategory, PostContact}
+import domofon.tck.entities.{EntityCreated, EntityCreatedWithSecret, PostCategory, PostContact}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.Await
@@ -62,16 +62,16 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     result
   }
 
-  def postCategoryRequest(cr: PostCategory = categoryRequest()): UUID = {
+  def postCategoryRequest(cr: PostCategory = categoryRequest()): EntityCreated = {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
-    var uuid: UUID = nonExistentUuid
-    val ret = Post("/categories", cr.toJson) ~> acceptPlain ~~> {
+    var result = EntityCreated(nonExistentUuid)
+    val ret = Post("/categories", cr.toJson) ~> acceptJson ~~> {
       status shouldBe StatusCodes.OK
-      uuid = UUID.fromString(responseAs[String])
+      result = responseAs[EntityCreated]
     }
-    uuid
+    result
   }
 
   def formatedEntityString(entity: HttpEntity): String = {

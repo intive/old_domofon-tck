@@ -1,5 +1,7 @@
 package domofon.tck
 
+import java.util.UUID
+
 import akka.http.scaladsl.model.StatusCodes
 
 trait RemoveCategoryItemTest extends BaseTckTest {
@@ -14,7 +16,7 @@ trait RemoveCategoryItemTest extends BaseTckTest {
     }
 
     it("Remove category when one exists") {
-      val uuid = postCategoryRequest()
+      val uuid: UUID = postCategoryRequest().id
 
       Delete(s"/categories/$uuid") ~~> {
         status shouldBe StatusCodes.OK

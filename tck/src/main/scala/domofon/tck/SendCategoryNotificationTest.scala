@@ -25,21 +25,21 @@ trait SendCategoryNotificationTest extends BaseTckTest {
     }
 
     it("It sends notification if it exists and isBatch") {
-      val uuid = postCategoryRequest(batchCategoryRequest)
+      val uuid: UUID = postCategoryRequest(batchCategoryRequest).id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
 
     it("It fails with BadRequest when it exists and is not isBatch") {
-      val uuid = postCategoryRequest(categoryRequest(isBatch = false))
+      val uuid: UUID = postCategoryRequest(categoryRequest(isBatch = false)).id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.BadRequest
       }
     }
 
     it("It discards notifications happening too often") {
-      val uuid = postCategoryRequest(batchCategoryRequest)
+      val uuid: UUID = postCategoryRequest(batchCategoryRequest).id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
@@ -50,7 +50,7 @@ trait SendCategoryNotificationTest extends BaseTckTest {
     }
 
     it("It tells when it is possible to retry sending notification as application/json") {
-      val uuid = postCategoryRequest(batchCategoryRequest)
+      val uuid: UUID = postCategoryRequest(batchCategoryRequest).id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }

@@ -32,7 +32,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("By default Contact has no deputy") {
-      val uuid = postContactRequest().id
+      val uuid: UUID = postContactRequest().id
 
       Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound

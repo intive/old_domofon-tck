@@ -1,5 +1,7 @@
 package domofon.tck
 
+import java.util.UUID
+
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.entities.EntityCreatedWithSecret
 import spray.json._
@@ -14,7 +16,7 @@ trait ContactMessageTest extends BaseTckTest {
     }
 
     it("Should return default message") {
-      val uuid = postContactRequest().id
+      val uuid: UUID = postContactRequest().id
       Get(s"/contacts/${uuid}/message") ~~> {
         status shouldBe StatusCodes.OK
       }
