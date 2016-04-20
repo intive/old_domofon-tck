@@ -12,5 +12,15 @@ trait DomofonYamlTest extends BaseTckTest {
         responseEntity.contentType shouldBe ContentTypes.`text/plain(UTF-8)`
       }
     }
+
+    it("Returned swagger definition should contain host:") {
+      Get("/domofon.yaml") ~~> {
+        val lines = entityAs[String].split("[\\r\\n]+")
+
+        lines.count(_.trim.startsWith("host:")) should not be (0)
+
+      }
+    }
+
   }
 }
