@@ -102,6 +102,14 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
   )
 
+  implicit val categoryIsNotBatchErrorMarshaller: ToEntityMarshaller[CategoryIsNotBatchError.type] = {
+    val msg = "Category is not Batch, make sure isBatch = true"
+    Marshaller.oneOf(
+      Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg),
+      Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => JsObject(("error", JsString(msg))).prettyPrint)
+    )
+  }
+
   implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =
     PredefinedFromEntityUnmarshallers.stringUnmarshaller.map(UUID.fromString(_))
 
