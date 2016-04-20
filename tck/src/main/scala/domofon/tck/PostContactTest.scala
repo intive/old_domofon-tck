@@ -6,7 +6,7 @@ import java.util.UUID
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
-import domofon.tck.entities.{PostContactResponse, ValidationFieldsError}
+import domofon.tck.entities.{EntityCreated, ValidationFieldsError}
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import spray.json._
 
@@ -82,7 +82,7 @@ trait PostContactTest extends BaseTckTest {
     it("Accepts proper Contact entity, returns application/json with UUID") {
       Post("/contacts", contactRequest().toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
-        responseAs[PostContactResponse].id should not be empty
+        responseAs[EntityCreated].id should not be empty
       }
     }
 

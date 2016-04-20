@@ -42,10 +42,12 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
   def domofonRoute: Route = Route.seal(routes)
 
   private[this] lazy val contacts = collection.concurrent.TrieMap[UUID, ContactResponse]()
+  private[this] lazy val categories = collection.concurrent.TrieMap[UUID, CategoryResponse]()
 
   private[this] case class MissingRequiredFieldsRejection(message: String, fields: List[String]) extends Rejection
-
   private[this] case class TooManyRequestsRejection(message: String, nextTryAt: Option[LocalDateTime]) extends Rejection
+  private[this] case object CategoryIsNotBatchRejection extends Rejection
+  case class NotificationResult(message: String, wasSuccessfull: Boolean)
 
   private[this] lazy val rejectionHandler: RejectionHandler = RejectionHandler.newBuilder().handle {
     case MissingRequiredFieldsRejection(message, fields) =>
@@ -56,29 +58,21 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
       complete(
         (StatusCodes.TooManyRequests, TooManyRequestsError(msg, when))
       )
+    case CategoryIsNotBatchRejection =>
+      complete(
+        StatusCodes.BadRequest
+      )
   }.result()
-
-  private[this] def takeContactFromPath: Directive1[ContactResponse] = {
-    pathPrefix(Segment).flatMap {
-      uuidMaybe =>
-        Try(UUID.fromString(uuidMaybe)) match {
-          case Success(uuid) =>
-            contacts.get(uuid) match {
-              case None       => complete((StatusCodes.NotFound, "Contact was not found"))
-              case Some(resp) => provide(resp)
-            }
-          case Failure(e) =>
-            reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
-        }
-    }
-  }
 
   def notifyDelay: FiniteDuration = 1.minute
 
-  case class NotificationResult(message: String, wasSuccessfull: Boolean)
-
   def sendNotifications(contactResponse: ContactResponse): Future[NotificationResult] = {
     println(s"Sending notification to ${contactResponse}")
+    FastFuture.successful(NotificationResult("Notification sent", true))
+  }
+
+  def sendNotifications(categoryResponse: CategoryResponse): Future[NotificationResult] = {
+    println(s"Sending notification to ${categoryResponse}")
     FastFuture.successful(NotificationResult("Notification sent", true))
   }
 
@@ -100,112 +94,159 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                 case Failure(f) => throw f
               }
           }
-        } ~ path("contacts") {
+        } ~ path("categories") {
           get {
-            complete(contacts.values.map(_.toJson(contactWithoutMessageWriter)))
+            complete(categories.values.toJson)
           } ~
             post {
               entity(as[JsObject]) { json =>
-                jsonAs[ContactRequest](json) { cr =>
-                  ContactRequestValidator(cr) match {
-                    case Valid(contact) =>
-                      val id = UUID.randomUUID()
-                      contacts.update(id, ContactResponse.from(id, cr))
-                      broadcastContactsUpdated()
-                      complete(id)
-                    case Invalid(nel) =>
-                      complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
-                  }
-
+                jsonAs[CategoryRequest](json) { cr =>
+                  val id = UUID.randomUUID()
+                  categories.update(id, CategoryResponse.from(id, cr))
+                  broadcastContactsUpdated()
+                  complete(id)
                 }
               }
             }
         } ~
+          pathPrefix("categories") {
+            takeCategoryFromPath { category =>
+              path("notify") {
+                post {
+                  if (category.isBatch) {
+
+                    if (category.nextNotificationAllowedAt.map(!_.isAfter(LocalDateTime.now)).getOrElse(true)) {
+                      val updatedCategory = category.copy(
+                        nextNotificationAllowedAt = Some(LocalDateTime.now.plusSeconds(notifyDelay.toSeconds))
+                      )
+                      categories.update(category.id, updatedCategory)
+                      broadcastContactsUpdated()
+                      onComplete(sendNotifications(updatedCategory)) {
+                        case Success(result) => complete(OperationSuccessful)
+                        case Failure(f)      => throw f
+                      }
+                    } else {
+                      reject(TooManyRequestsRejection("Can't send notifications that often", category.nextNotificationAllowedAt))
+                    }
+                  } else {
+                    reject(CategoryIsNotBatchRejection)
+                  }
+                }
+              } ~
+                pathEndOrSingleSlash {
+                  get {
+                    complete(category.toJson)
+                  } ~
+                    delete {
+                      categories.remove(category.id)
+                      complete(OperationSuccessful)
+                    }
+                }
+            }
+          } ~ path("contacts") {
+            get {
+              complete(contacts.values.map(_.toJson(contactWithoutMessageWriter)))
+            } ~
+              post {
+                entity(as[JsObject]) { json =>
+                  jsonAs[ContactRequest](json) { cr =>
+                    ContactRequestValidator(cr) match {
+                      case Valid(contact) =>
+                        val id = UUID.randomUUID()
+                        contacts.update(id, ContactResponse.from(id, cr))
+                        broadcastContactsUpdated()
+                        complete(id)
+                      case Invalid(nel) =>
+                        complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
+                    }
+
+                  }
+                }
+              }
+          } ~
           path("contacts" / "sse") {
             complete(sseUpdatesFlow)
           } ~ pathPrefix("contacts") {
-            takeContactFromPath {
-              contact =>
-                path("deputy") {
-                  get {
-                    contact.deputy match {
-                      case None         => complete((StatusCodes.NotFound, "Contact has no deputy"))
-                      case Some(deputy) => complete(deputy.toJson)
+            takeContactFromPath { contact =>
+              path("deputy") {
+                get {
+                  contact.deputy match {
+                    case None         => complete((StatusCodes.NotFound, "Contact has no deputy"))
+                    case Some(deputy) => complete(deputy.toJson)
+                  }
+                } ~
+                  put {
+                    entity(as[Deputy]) {
+                      deputy =>
+                        contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
+                        broadcastContactsUpdated()
+                        complete(OperationSuccessful)
                     }
                   } ~
+                  delete {
+                    contacts.update(contact.id, contact.copy(deputy = None))
+                    broadcastContactsUpdated()
+                    complete(OperationSuccessful)
+                  }
+              } ~
+                path("important") {
+                  get {
+                    complete(IsImportant(contact.isImportant).toJson)
+                  } ~
                     put {
-                      entity(as[Deputy]) {
-                        deputy =>
-                          contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
+                      entity(as[JsObject]) { json =>
+                        jsonAs[IsImportant](json) { imp =>
+                          contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
                           broadcastContactsUpdated()
                           complete(OperationSuccessful)
+                        }
                       }
-                    } ~
+                    }
+                } ~
+                path("notify") {
+                  post {
+                    if (contact.nextNotificationAllowedAt.map(!_.isAfter(LocalDateTime.now)).getOrElse(true)) {
+                      val updatedContact = contact.copy(
+                        nextNotificationAllowedAt = Some(LocalDateTime.now.plusSeconds(notifyDelay.toSeconds))
+                      )
+                      contacts.update(contact.id, updatedContact)
+                      broadcastContactsUpdated()
+                      onComplete(sendNotifications(updatedContact)) {
+                        case Success(result) => complete(OperationSuccessful)
+                        case Failure(f)      => throw f
+                      }
+                    } else {
+                      reject(TooManyRequestsRejection("Can't send notifications that often", contact.nextNotificationAllowedAt))
+                    }
+                  }
+                } ~
+                path("message") {
+                  get {
+                    complete(contact.message)
+                  } ~
+                    put {
+                      entity(as[String]) { msg =>
+                        contacts.update(contact.id, contact.copy(message = msg))
+                        complete(OperationSuccessful)
+                      }
+                    }
+                } ~
+                pathEndOrSingleSlash {
+                  get {
+                    complete(contact.toJson(contactWithoutMessageWriter))
+                  } ~
                     delete {
-                      contacts.update(contact.id, contact.copy(deputy = None))
+                      contacts.remove(contact.id)
                       broadcastContactsUpdated()
                       complete(OperationSuccessful)
                     }
-                } ~
-                  path("important") {
-                    get {
-                      complete(IsImportant(contact.isImportant).toJson)
-                    } ~
-                      put {
-                        entity(as[JsObject]) { json =>
-                          jsonAs[IsImportant](json) { imp =>
-                            contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
-                            broadcastContactsUpdated()
-                            complete(OperationSuccessful)
-                          }
-                        }
-                      }
-                  } ~
-                  path("notify") {
-                    post {
-                      if (contact.nextNotificationAllowedAt.map(!_.isAfter(LocalDateTime.now)).getOrElse(true)) {
-                        val updatedContact = contact.copy(
-                          nextNotificationAllowedAt = Some(LocalDateTime.now.plusSeconds(notifyDelay.toSeconds))
-                        )
-                        contacts.update(contact.id, updatedContact)
-                        broadcastContactsUpdated()
-                        onComplete(sendNotifications(updatedContact)) {
-                          case Success(result) => complete(OperationSuccessful)
-                          case Failure(f)      => throw f
-                        }
-                      } else {
-                        reject(TooManyRequestsRejection("Can't send notifications that often", contact.nextNotificationAllowedAt))
-                      }
-                    }
-                  } ~
-                  path("message") {
-                    get {
-                      complete(contact.message)
-                    } ~
-                      put {
-                        entity(as[String]) { msg =>
-                          contacts.update(contact.id, contact.copy(message = msg))
-                          complete(OperationSuccessful)
-                        }
-                      }
-                  } ~
-                  pathEndOrSingleSlash {
-                    get {
-                      complete(contact.toJson(contactWithoutMessageWriter))
-                    } ~
-                      delete {
-                        contacts.remove(contact.id)
-                        broadcastContactsUpdated()
-                        complete(OperationSuccessful)
-                      }
-                  }
+                }
             }
           } ~ pathEndOrSingleSlash {
             get {
               complete("Mock Server is running, check documentation available at: http://blstream.github.io/domofon-api/")
             }
           }
-
     }
   }
 
@@ -217,6 +258,36 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
         reject(MissingRequiredFieldsRejection(msg, fields))
       case Failure(otherEx) =>
         reject()
+    }
+  }
+
+  private[this] def takeContactFromPath: Directive1[ContactResponse] = {
+    pathPrefix(Segment).flatMap {
+      uuidMaybe =>
+        Try(UUID.fromString(uuidMaybe)) match {
+          case Success(uuid) =>
+            contacts.get(uuid) match {
+              case None       => complete((StatusCodes.NotFound, "Contact was not found"))
+              case Some(resp) => provide(resp)
+            }
+          case Failure(e) =>
+            reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
+        }
+    }
+  }
+
+  private[this] def takeCategoryFromPath: Directive1[CategoryResponse] = {
+    pathPrefix(Segment).flatMap {
+      uuidMaybe =>
+        Try(UUID.fromString(uuidMaybe)) match {
+          case Success(uuid) =>
+            categories.get(uuid) match {
+              case None       => complete((StatusCodes.NotFound, "Category was not found"))
+              case Some(resp) => provide(resp)
+            }
+          case Failure(e) =>
+            reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
+        }
     }
   }
 
