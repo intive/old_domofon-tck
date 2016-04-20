@@ -138,13 +138,13 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                         deputy =>
                           contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
                           broadcastContactsUpdated()
-                          complete(StatusCodes.OK)
+                          complete(OperationSuccessful)
                       }
                     } ~
                     delete {
                       contacts.update(contact.id, contact.copy(deputy = None))
                       broadcastContactsUpdated()
-                      complete(StatusCodes.OK)
+                      complete(OperationSuccessful)
                     }
                 } ~
                   path("important") {
@@ -156,7 +156,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                           jsonAs[IsImportant](json) { imp =>
                             contacts.update(contact.id, contact.copy(isImportant = imp.isImportant))
                             broadcastContactsUpdated()
-                            complete(StatusCodes.OK)
+                            complete(OperationSuccessful)
                           }
                         }
                       }
@@ -170,7 +170,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                         contacts.update(contact.id, updatedContact)
                         broadcastContactsUpdated()
                         onComplete(sendNotifications(updatedContact)) {
-                          case Success(result) => complete(StatusCodes.OK)
+                          case Success(result) => complete(OperationSuccessful)
                           case Failure(f)      => throw f
                         }
                       } else {
@@ -185,7 +185,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       put {
                         entity(as[String]) { msg =>
                           contacts.update(contact.id, contact.copy(message = msg))
-                          complete(ContactMessageUpdated("OK"))
+                          complete(OperationSuccessful)
                         }
                       }
                   } ~
@@ -196,7 +196,7 @@ trait MockServer extends Directives with SprayJsonSupport with MockMarshallers w
                       delete {
                         contacts.remove(contact.id)
                         broadcastContactsUpdated()
-                        complete(StatusCodes.OK)
+                        complete(OperationSuccessful)
                       }
                   }
             }
