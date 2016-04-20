@@ -49,7 +49,7 @@ object Server extends App {
 
       import system.dispatcher
 
-      val mockServer = MockServer(system, materializer)
+      val mockServer = MockServer(s"${getHostname(host)}:${port}", system, materializer)
 
       val corsSettings = CorsSettings.defaultSettings.copy(allowedMethods = immutable.Seq(
         HttpMethods.GET, HttpMethods.POST, HttpMethods.PUT, HttpMethods.DELETE
@@ -64,11 +64,7 @@ object Server extends App {
       Http().bindAndHandle(routes, host, port).onComplete {
         case Success(binding) =>
           println(s"Listening on ${binding.localAddress}")
-          val hostname = if (binding.localAddress.getHostName.matches("^[0:\\.]*$")) {
-            "localhost"
-          } else {
-            binding.localAddress.getHostName
-          }
+          val hostname = getHostname(binding.localAddress.getHostName)
           val serverUrl = s"http://${hostname}:${binding.localAddress.getPort}"
           println()
           println(s"Open $serverUrl")
@@ -90,6 +86,14 @@ object Server extends App {
 
     case None =>
       sys.exit(1)
+  }
+
+  private[this] def getHostname(address: String): String = {
+    if (address.matches("^[0:\\.]*$")) {
+      "localhost"
+    } else {
+      address
+    }
   }
 
 }
