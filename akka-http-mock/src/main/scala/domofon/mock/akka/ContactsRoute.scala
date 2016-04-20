@@ -6,8 +6,10 @@ import java.util.UUID
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.HttpCookie
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.directives.Credentials
 import akka.stream.scaladsl.Source
 import akka.stream.{Materializer, OverflowStrategy}
 import cats.data.Validated.{Invalid, Valid}
@@ -32,6 +34,15 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
   def notifyDelay: FiniteDuration
 
   def sendNotifications(contactResponse: ContactResponse): Future[NotificationResult]
+
+  private[this] def contactSecretAuthenticator(contactResponse: ContactResponse): AuthenticatorPF[UUID] = {
+    case p: Credentials.Provided if p.verify(contactResponse.secret.toString) =>
+      contactResponse.id
+  }
+
+  private[this] def authenticateContactSecret(contactResponse: ContactResponse)(r: Route): Route = {
+    authenticateOAuth2PF("Domofon", contactSecretAuthenticator(contactResponse)) { _ => r }
+  }
 
   def contactsRoute(
     contacts: scala.collection.concurrent.TrieMap[UUID, ContactResponse],
@@ -64,7 +75,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                   val id = UUID.randomUUID()
                   val secret = UUID.randomUUID()
                   contacts.update(id, ContactResponse.from(id, secret, cr))
-                  complete(id)
+                  setCookie(HttpCookie("secret", secret.toString, secure = true)) { complete(id) }
                 case Invalid(nel) =>
                   complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
               }
@@ -85,17 +96,21 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
               }
             } ~
               put {
-                entity(as[Deputy]) {
-                  deputy =>
-                    contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
-                    broadcastContactsUpdated()
-                    complete(OperationSuccessful)
+                authenticateContactSecret(contact) {
+                  entity(as[Deputy]) {
+                    deputy =>
+                      contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
+                      broadcastContactsUpdated()
+                      complete(OperationSuccessful)
+                  }
                 }
               } ~
               delete {
-                contacts.update(contact.id, contact.copy(deputy = None))
-                broadcastContactsUpdated()
-                complete(OperationSuccessful)
+                authenticateContactSecret(contact) {
+                  contacts.update(contact.id, contact.copy(deputy = None))
+                  broadcastContactsUpdated()
+                  complete(OperationSuccessful)
+                }
               }
           } ~
             path("important") {
@@ -145,9 +160,11 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                 complete(contact.toJson(contactPublicResponseWriter))
               } ~
                 delete {
-                  contacts.remove(contact.id)
-                  broadcastContactsUpdated()
-                  complete(OperationSuccessful)
+                  authenticateContactSecret(contact) {
+                    contacts.remove(contact.id)
+                    broadcastContactsUpdated()
+                    complete(OperationSuccessful)
+                  }
                 }
             }
         }

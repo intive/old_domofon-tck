@@ -73,7 +73,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
 
   implicit val categoryResponseFormat = jsonFormat6(CategoryResponse.apply)
 
-  implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
   implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
   implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
   implicit val missingFieldsErrorFormat = jsonFormat2(MissingFieldsError.apply)
