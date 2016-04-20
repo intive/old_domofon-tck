@@ -31,11 +31,6 @@ trait Auth {
       adminSession
   }
 
-  def authenticateAdminSecret: AuthenticatorPF[UUID] = {
-    case p: Credentials.Provided if p.verify(adminSession.toString) =>
-      adminSession
-  }
-
   lazy val adminSessionRoutes = path("login") {
     get {
       authenticateBasicPF("Domofon Admin", authenticateAdminUserPass) { adminToken =>

@@ -34,6 +34,28 @@ trait AdminOpsTest extends BaseTckTest with AdminCredentials {
       }
     }
 
+    it("DELETE /contacts/{id} should be impossible if no secret and no admin") {
+      val id = postContactRequest().id
+
+      Delete(s"/contacts/${id}") ~~> {
+        status should equal(StatusCodes.Unauthorized)
+      }
+    }
+    it("DELETE /contacts/{id}/deputy should be impossible if no secret and no admin") {
+      val id = postContactRequest().id
+
+      Delete(s"/contacts/${id}/deputy") ~~> {
+        status should equal(StatusCodes.Unauthorized)
+      }
+    }
+    it("PUT /contacts/{id}/deputy should be impossible if no secret and no admin") {
+      val id = postContactRequest().id
+
+      Put(s"/contacts/${id}/deputy", Deputy("Jan Kowalski", "jan.kowalski@company.pl", "+48123321123").toJson) ~~> {
+        status should equal(StatusCodes.Unauthorized)
+      }
+    }
+
   }
 
 }
