@@ -42,7 +42,7 @@ trait PostCategoryTest extends BaseTckTest {
     it("Accepts proper Category entity, returns application/json with UUID") {
       Post(categoriesEndpoint, categoryRequest().toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
-        responseAs[EntityCreated].id should not be empty
+        responseAs[EntityCreated].id shouldBe a[UUID]
       }
     }
 

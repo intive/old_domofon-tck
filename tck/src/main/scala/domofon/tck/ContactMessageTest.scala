@@ -1,7 +1,7 @@
 package domofon.tck
 
 import akka.http.scaladsl.model.StatusCodes
-import domofon.tck.BaseTckTest.ContactCreationResult
+import domofon.tck.entities.EntityCreatedWithSecret
 import spray.json._
 
 trait ContactMessageTest extends BaseTckTest {
@@ -30,7 +30,7 @@ trait ContactMessageTest extends BaseTckTest {
     }
 
     it("should update message for existing contact, respond with String") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> authorizeWithSecret(secret) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String] should equal("OK")
@@ -38,7 +38,7 @@ trait ContactMessageTest extends BaseTckTest {
     }
 
     it("should update message for existing contact, respond with JSON") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       Put(s"/contacts/$uuid/message").withEntity("Got a package for ya!") ~> authorizeWithSecret(secret) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[String].parseJson.asJsObject.fields("status") should equal(JsString("OK"))
@@ -46,7 +46,7 @@ trait ContactMessageTest extends BaseTckTest {
     }
 
     it("Updated message could be retrieved") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       val message = "Got a package for ya!"
       Put(s"/contacts/$uuid/message").withEntity(message) ~> authorizeWithSecret(secret) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK

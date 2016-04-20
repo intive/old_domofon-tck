@@ -1,7 +1,7 @@
 package domofon.tck
 
 import akka.http.scaladsl.model.StatusCodes
-import domofon.tck.BaseTckTest.ContactCreationResult
+import domofon.tck.entities.EntityCreatedWithSecret
 
 trait RemoveContactItemTest extends BaseTckTest {
 
@@ -15,7 +15,7 @@ trait RemoveContactItemTest extends BaseTckTest {
     }
 
     it("Remove contact when one exists") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
 
       Delete(s"/contacts/$uuid") ~> authorizeWithSecret(secret) ~~> {
         status shouldBe StatusCodes.OK

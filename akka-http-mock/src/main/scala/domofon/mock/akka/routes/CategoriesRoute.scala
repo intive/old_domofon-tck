@@ -12,7 +12,7 @@ import akka.stream.Materializer
 import domofon.mock.akka.utils.{MockMarshallers, Helpers, RejectionsSupport}
 import Helpers._
 import RejectionsSupport.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
-import domofon.mock.akka.entities.{CategoryRequest, CategoryResponse, NotificationResult, OperationSuccessful}
+import domofon.mock.akka.entities._
 import spray.json._
 
 import scala.concurrent.duration.FiniteDuration
@@ -56,7 +56,7 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport {
             jsonAs[CategoryRequest](json) { cr =>
               val id = UUID.randomUUID()
               categories.update(id, CategoryResponse.from(id, cr))
-              complete(id)
+              complete(CategoryCreated(id))
             }
           }
         }
