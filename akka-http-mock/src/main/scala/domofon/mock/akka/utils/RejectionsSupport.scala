@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Rejection, RejectionHandler}
 import MockMarshallers._
-import domofon.mock.akka.entities.{MissingFieldsError, TooManyRequestsError}
+import domofon.mock.akka.entities.{CategoryIsNotBatchError, MissingFieldsError, TooManyRequestsError}
 
 object RejectionsSupport {
 
@@ -25,7 +25,7 @@ object RejectionsSupport {
       )
     case CategoryIsNotBatchRejection =>
       complete(
-        StatusCodes.BadRequest
+        (StatusCodes.BadRequest, CategoryIsNotBatchError)
       )
   }.result()
 

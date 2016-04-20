@@ -1,3 +1,7 @@
 package domofon.tck.entities
 
-case class EntityCreated(id: String)
+import java.util.UUID
+
+case class EntityCreated(id: UUID)
+
+case class EntityCreatedWithSecret(id: UUID, secret: UUID)

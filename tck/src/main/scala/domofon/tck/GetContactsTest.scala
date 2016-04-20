@@ -1,5 +1,7 @@
 package domofon.tck
 
+import java.util.UUID
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
@@ -35,7 +37,7 @@ trait GetContactsTest extends BaseTckTest {
     }
 
     it("Created Contact could be listed") {
-      val uuid = postContactRequest().id
+      val uuid: UUID = postContactRequest().id
 
       Get(s"/contacts") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK

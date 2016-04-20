@@ -5,7 +5,7 @@ import java.util.UUID
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.Credentials
-import domofon.mock.akka.entities.ContactResponse
+import domofon.mock.akka.entities.{LoginToken, ContactResponse}
 
 trait Auth {
   import domofon.mock.akka.utils.MockMarshallers._
@@ -31,15 +31,10 @@ trait Auth {
       adminSession
   }
 
-  def authenticateAdminSecret: AuthenticatorPF[UUID] = {
-    case p: Credentials.Provided if p.verify(adminSession.toString) =>
-      adminSession
-  }
-
   lazy val adminSessionRoutes = path("login") {
     get {
       authenticateBasicPF("Domofon Admin", authenticateAdminUserPass) { adminToken =>
-        complete(adminToken)
+        complete(LoginToken(adminToken))
       }
     }
   }

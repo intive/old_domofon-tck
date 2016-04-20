@@ -82,7 +82,7 @@ trait PostContactTest extends BaseTckTest {
     it("Accepts proper Contact entity, returns application/json with UUID") {
       Post("/contacts", contactRequest().toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
-        responseAs[EntityCreated].id should not be empty
+        responseAs[EntityCreated].id shouldBe a[UUID]
       }
     }
 

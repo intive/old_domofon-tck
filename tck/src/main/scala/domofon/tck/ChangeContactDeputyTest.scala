@@ -6,8 +6,7 @@ import domofon.tck.DomofonMarshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import domofon.tck.BaseTckTest.ContactCreationResult
-import domofon.tck.entities.Deputy
+import domofon.tck.entities.{EntityCreatedWithSecret, Deputy}
 import spray.json._
 
 trait ChangeContactDeputyTest extends BaseTckTest {
@@ -33,7 +32,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("By default Contact has no deputy") {
-      val uuid = postContactRequest().id
+      val uuid: UUID = postContactRequest().id
 
       Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound
@@ -50,7 +49,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("It is possible to create deputy with PUT /contacts/{id}/deputy") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
 
       putContactDeputy(uuid, secret) ~> check {
         status shouldBe StatusCodes.OK
@@ -58,7 +57,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("Can respond only with application/json and fails with other response types on GET /contacts/{id}/deputy when exists") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
 
       putContactDeputy(uuid, secret) ~> check {
         status shouldBe StatusCodes.OK
@@ -70,7 +69,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("When deputy was created it could be retrieved GET /contacts/{id}/deputy") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       val deputy = contactDeputy()
 
       putContactDeputy(uuid, secret, deputy) ~> check {
@@ -84,7 +83,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("Deputy could be overwritten") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       val deputy = contactDeputy()
       val deputy2 = deputy.copy(name = "Other Person")
 
@@ -117,14 +116,14 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("Allows deleting even if there is no deputy set ") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       Delete(deputyUrl(uuid)) ~> authorizeWithSecret(secret) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
 
     it("When deputy was added, it could be removed") {
-      val ContactCreationResult(uuid, secret) = postContactRequest()
+      val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
       val deputy = contactDeputy()
 
       putContactDeputy(uuid, secret, deputy) ~> check {

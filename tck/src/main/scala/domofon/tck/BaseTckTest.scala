@@ -9,9 +9,7 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.testkit._
-import domofon.tck.entities.{PostCategory, PostContact}
-import domofon.tck.BaseTckTest.ContactCreationResult
-import domofon.tck.entities.PostContact
+import domofon.tck.entities.{EntityCreated, EntityCreatedWithSecret, PostCategory, PostContact}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.Await
@@ -52,32 +50,28 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   def maxSampleLength: Int = 1000
 
-  def postContactRequest(cr: PostContact = contactRequest()): ContactCreationResult = {
+  def postContactRequest(cr: PostContact = contactRequest()): EntityCreatedWithSecret = {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
-    var uuid: UUID = nonExistentUuid
-    var secret: UUID = nonExistentUuid
-    val ret = Post("/contacts", cr.toJson) ~> acceptPlain ~~> {
+    var result = EntityCreatedWithSecret(nonExistentUuid, nonExistentUuid)
+    val ret = Post("/contacts", cr.toJson) ~> acceptJson ~~> {
       status shouldBe StatusCodes.OK
-      uuid = UUID.fromString(responseAs[String])
-      secret = headers.collect {
-        case `Set-Cookie`(c) if c.name == "secret" => UUID.fromString(c.value)
-      }.head
+      result = responseAs[EntityCreatedWithSecret]
     }
-    ContactCreationResult(uuid, secret)
+    result
   }
 
-  def postCategoryRequest(cr: PostCategory = categoryRequest()): UUID = {
+  def postCategoryRequest(cr: PostCategory = categoryRequest()): EntityCreated = {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
-    var uuid: UUID = nonExistentUuid
-    val ret = Post("/categories", cr.toJson) ~> acceptPlain ~~> {
+    var result = EntityCreated(nonExistentUuid)
+    val ret = Post("/categories", cr.toJson) ~> acceptJson ~~> {
       status shouldBe StatusCodes.OK
-      uuid = UUID.fromString(responseAs[String])
+      result = responseAs[EntityCreated]
     }
-    uuid
+    result
   }
 
   def formatedEntityString(entity: HttpEntity): String = {
@@ -159,6 +153,3 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
 }
 
-object BaseTckTest {
-  case class ContactCreationResult(id: UUID, secret: UUID)
-}

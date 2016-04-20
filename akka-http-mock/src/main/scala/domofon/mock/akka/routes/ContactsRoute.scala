@@ -70,9 +70,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                   val secret = UUID.randomUUID()
                   contacts.update(id, ContactResponse.from(id, secret, cr))
                   broadcastContactsUpdated()
-                  setCookie(HttpCookie("secret", secret.toString, secure = true)) {
-                    complete(id)
-                  }
+                  complete(ContactCreated(id, secret))
                 case Invalid(nel) =>
                   complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
               }

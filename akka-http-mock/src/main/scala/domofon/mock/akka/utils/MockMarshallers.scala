@@ -22,6 +22,7 @@ trait MockMarshallers extends DefaultJsonProtocol {
           throw new DeserializationException(msg = ex.getMessage)
       }
     }
+
     override def write(obj: LocalDate) = JsString(obj.toString)
   }
 
@@ -87,11 +88,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
     }
   }
 
-  implicit val contactCreatedMarshaller: ToEntityMarshaller[UUID] = Marshaller.oneOf(
-    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(uuid => uuid.toString),
-    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(uuid => JsObject(("id", JsString(uuid.toString))).prettyPrint)
-  )
-
   implicit val missingFieldsErrorMarshaller: ToEntityMarshaller[MissingFieldsError] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => e.message),
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
@@ -102,8 +98,34 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
   )
 
-  implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =
-    PredefinedFromEntityUnmarshallers.stringUnmarshaller.map(UUID.fromString(_))
+  implicit val categoryIsNotBatchErrorMarshaller: ToEntityMarshaller[CategoryIsNotBatchError.type] = {
+    val msg = "Category is not Batch, make sure isBatch = true"
+    Marshaller.oneOf(
+      Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg),
+      Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => JsObject(("error", JsString(msg))).prettyPrint)
+    )
+  }
+
+  implicit val contactCreatedMarshaller: ToEntityMarshaller[ContactCreated] = Marshaller.oneOf(
+    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(cc => cc.id.toString),
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(cc => JsObject(
+      ("id", JsString(cc.id.toString)), ("secret", JsString(cc.secret.toString))
+    ).prettyPrint)
+  )
+
+  implicit val categoryCreatedMarshaller: ToEntityMarshaller[CategoryCreated] = Marshaller.oneOf(
+    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(cc => cc.id.toString),
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(cc => JsObject(
+      ("id", JsString(cc.id.toString))
+    ).prettyPrint)
+  )
+
+  implicit val loginTokenMarshaller: ToEntityMarshaller[LoginToken] = Marshaller.oneOf(
+    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(lt => lt.token.toString),
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(lt => JsObject(
+      ("token", JsString(lt.token.toString))
+    ).prettyPrint)
+  )
 
   implicit val operationResultMarshaller: ToEntityMarshaller[OperationResult] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(r => r.status),
