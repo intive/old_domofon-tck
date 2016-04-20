@@ -75,7 +75,7 @@ object Server extends App {
           println()
           println()
           println("To use Swagger Editor (preferred):")
-          println(s"http://editor.swagger.io/#/?import=${serverUrl}/domofon.yaml")
+          println(s"http://editor.swagger.io/#/?import=${serverUrl}/domofon.yaml&no-proxy")
           println()
           println("To use Swagger UI:")
           println(s"http://blstream.github.io/domofon-api/#swagger=${serverUrl}/domofon.yaml")
