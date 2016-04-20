@@ -25,7 +25,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Created Contact could be retrieved") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
 
       Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -33,7 +33,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Returned object is JSON object") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
 
       Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -42,7 +42,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Returned object is JSON object and could be decoded as Contact response") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
 
       val request: HttpRequest = Get(s"/contacts/${uuid}") ~> acceptJson
 
@@ -54,7 +54,7 @@ trait GetContactItemTest extends BaseTckTest {
 
     it("When contact was posted without adminEmail, notifyEmail is used instead") {
       val notifyEmail = "some@domain.pl"
-      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None))
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None)).id
 
       Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
@@ -65,7 +65,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("When contact was posted with adminEmail, it is available in GET") {
       val notifyEmail = "some@domain.pl"
       val adminEmail = "admin@domain.pl"
-      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail)))
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail))).id
 
       Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
@@ -74,7 +74,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Doesn't contain message as it might be sensitive information") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
 
       Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK

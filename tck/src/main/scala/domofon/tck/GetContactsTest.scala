@@ -35,7 +35,7 @@ trait GetContactsTest extends BaseTckTest {
     }
 
     it("Created Contact could be listed") {
-      val uuid = postContactRequest()
+      val uuid = postContactRequest().id
 
       Get(s"/contacts") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK

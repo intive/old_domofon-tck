@@ -4,12 +4,14 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.Accept
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.testkit._
 import domofon.tck.entities.{PostCategory, PostContact}
+import domofon.tck.BaseTckTest.ContactCreationResult
+import domofon.tck.entities.PostContact
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.Await
@@ -50,16 +52,20 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   def maxSampleLength: Int = 1000
 
-  def postContactRequest(cr: PostContact = contactRequest()): UUID = {
+  def postContactRequest(cr: PostContact = contactRequest()): ContactCreationResult = {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
     var uuid: UUID = nonExistentUuid
+    var secret: UUID = nonExistentUuid
     val ret = Post("/contacts", cr.toJson) ~> acceptPlain ~~> {
       status shouldBe StatusCodes.OK
       uuid = UUID.fromString(responseAs[String])
+      secret = headers.collect {
+        case `Set-Cookie`(c) if c.name == "secret" => UUID.fromString(c.value)
+      }.head
     }
-    uuid
+    ContactCreationResult(uuid, secret)
   }
 
   def postCategoryRequest(cr: PostCategory = categoryRequest()): UUID = {
@@ -94,6 +100,10 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   private[this] def headersStringOrEmpty(headers: Seq[HttpHeader]): String = {
     headers.mkString("", "\n", "\n")
+  }
+
+  def authorizeWithSecret(secret: UUID): RequestTransformer = {
+    addHeader(Authorization(OAuth2BearerToken(secret.toString)))
   }
 
   def requestAsString(request: HttpRequest): String = {
@@ -143,4 +153,8 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     }
   }
 
+}
+
+object BaseTckTest {
+  case class ContactCreationResult(id: UUID, secret: UUID)
 }
