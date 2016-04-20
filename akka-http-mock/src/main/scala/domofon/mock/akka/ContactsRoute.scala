@@ -35,13 +35,30 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
 
   def sendNotifications(contactResponse: ContactResponse): Future[NotificationResult]
 
-  private[this] def contactSecretAuthenticator(contactResponse: ContactResponse): AuthenticatorPF[UUID] = {
-    case p: Credentials.Provided if p.verify(contactResponse.secret.toString) =>
-      contactResponse.id
+  private[this] def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[UUID] = {
+    case p: Credentials.Provided =>
+      val isSecret = p.verify(contactResponse.secret.toString)
+      val isAdmin = p.verify(adminSession.toString)
+      if (isSecret || isAdmin) Some(contactResponse.id) else None
+    case _ => None
   }
 
-  private[this] def authenticateContactSecret(contactResponse: ContactResponse)(r: Route): Route = {
-    authenticateOAuth2PF("Domofon", contactSecretAuthenticator(contactResponse)) { _ => r }
+  private[this] def authenticateContactSecretOrAdmin(contactResponse: ContactResponse)(r: Route): Route = {
+    authenticateOAuth2("Domofon", contactSecretAuthenticator(contactResponse)) { _ => r }
+  }
+
+  val (adminLogin, adminPass) = ("admin", "Z1ON0101") // todo read from config/env
+  @volatile private[this] var adminSession = UUID.randomUUID()
+
+  private[this] def authenticateAdminUserPass: AuthenticatorPF[UUID] = {
+    case p @ Credentials.Provided(login) if p.verify(adminPass) && adminLogin == login =>
+      adminSession = UUID.randomUUID()
+      adminSession
+  }
+
+  private[this] def authenticateAdminSecret: AuthenticatorPF[UUID] = {
+    case p: Credentials.Provided if p.verify(adminSession.toString) =>
+      adminSession
   }
 
   def contactsRoute(
@@ -75,7 +92,10 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                   val id = UUID.randomUUID()
                   val secret = UUID.randomUUID()
                   contacts.update(id, ContactResponse.from(id, secret, cr))
-                  setCookie(HttpCookie("secret", secret.toString, secure = true)) { complete(id) }
+                  broadcastContactsUpdated()
+                  setCookie(HttpCookie("secret", secret.toString, secure = true)) {
+                    complete(id)
+                  }
                 case Invalid(nel) =>
                   complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
               }
@@ -96,7 +116,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
               }
             } ~
               put {
-                authenticateContactSecret(contact) {
+                authenticateContactSecretOrAdmin(contact) {
                   entity(as[Deputy]) {
                     deputy =>
                       contacts.update(contact.id, contact.copy(deputy = Some(deputy)))
@@ -106,7 +126,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                 }
               } ~
               delete {
-                authenticateContactSecret(contact) {
+                authenticateContactSecretOrAdmin(contact) {
                   contacts.update(contact.id, contact.copy(deputy = None))
                   broadcastContactsUpdated()
                   complete(OperationSuccessful)
@@ -160,13 +180,27 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                 complete(contact.toJson(contactPublicResponseWriter))
               } ~
                 delete {
-                  authenticateContactSecret(contact) {
+                  authenticateContactSecretOrAdmin(contact) {
                     contacts.remove(contact.id)
                     broadcastContactsUpdated()
                     complete(OperationSuccessful)
                   }
                 }
             }
+        }
+
+      } ~ path("login") {
+        get {
+          authenticateBasicPF("Domofon Admin", authenticateAdminUserPass) { adminToken =>
+            complete(adminToken)
+          }
+        }
+      } ~ path("logout") {
+        get {
+          authenticateOAuth2PF("Domofon Admin", authenticateAdminSecret) { _ =>
+            adminSession = UUID.randomUUID()
+            complete(StatusCodes.OK)
+          }
         }
 
       }
