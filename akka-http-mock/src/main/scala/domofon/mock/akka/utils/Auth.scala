@@ -1,14 +1,14 @@
-package domofon.mock.akka
+package domofon.mock.akka.utils
 
 import java.util.UUID
 
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.Credentials
+import domofon.mock.akka.entities.ContactResponse
 
 trait Auth {
-  import MockMarshallers._
+  import domofon.mock.akka.utils.MockMarshallers._
 
   def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[UUID] = {
     case p: Credentials.Provided =>

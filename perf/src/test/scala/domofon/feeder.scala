@@ -1,8 +1,8 @@
 package domofon
 
 import akka.http.scaladsl.marshallers.sprayjson._
+import domofon.mock.akka.utils.MockMarshallers
 import spray.json._
-import mock.akka.MockMarshallers
 
 trait Feeders extends SprayJsonSupport with MockMarshallers {
   self: Generators =>

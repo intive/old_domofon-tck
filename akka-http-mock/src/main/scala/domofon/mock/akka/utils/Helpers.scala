@@ -1,8 +1,8 @@
-package domofon.mock.akka
+package domofon.mock.akka.utils
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import domofon.mock.akka.MockRejections.MissingRequiredFieldsRejection
+import domofon.mock.akka.utils.RejectionsSupport.MissingRequiredFieldsRejection
 import spray.json.{DeserializationException, JsObject, JsonReader}
 
 import scala.util.{Failure, Success, Try}

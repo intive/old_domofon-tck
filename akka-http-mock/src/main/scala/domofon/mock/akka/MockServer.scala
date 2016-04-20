@@ -8,6 +8,9 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.Materializer
 import de.heikoseeberger.akkasse.EventStreamMarshalling
+import domofon.mock.akka.entities.{NotificationResult, ContactResponse, CategoryResponse}
+import domofon.mock.akka.routes.{SwaggerRoute, ContactsRoute, CategoriesRoute}
+import domofon.mock.akka.utils.{Auth, MockMarshallers, RejectionsSupport}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,7 +47,7 @@ trait MockServer extends Directives
     FastFuture.successful(NotificationResult("Notification sent", true))
   }
 
-  private[this] lazy val routes: Route = handleRejections(MockRejections.rejectionHandler) {
+  private[this] lazy val routes: Route = handleRejections(RejectionsSupport.rejectionHandler) {
     extractRequest { req =>
       //println(req) //for easier debugging of problems you can uncomment that
       domofonYmlRoute ~

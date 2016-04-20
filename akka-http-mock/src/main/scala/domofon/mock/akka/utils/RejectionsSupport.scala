@@ -1,13 +1,14 @@
-package domofon.mock.akka
+package domofon.mock.akka.utils
 
 import java.time.LocalDateTime
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Rejection, RejectionHandler}
-import domofon.mock.akka.MockMarshallers._
+import MockMarshallers._
+import domofon.mock.akka.entities.{MissingFieldsError, TooManyRequestsError}
 
-object MockRejections {
+object RejectionsSupport {
 
   case class MissingRequiredFieldsRejection(message: String, fields: List[String]) extends Rejection
   case class TooManyRequestsRejection(message: String, nextTryAt: Option[LocalDateTime]) extends Rejection

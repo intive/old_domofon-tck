@@ -1,5 +1,6 @@
 package domofon
 
+import domofon.mock.akka.entities.{Deputy, IsImportant, ContactRequest}
 import org.scalacheck._
 
 trait Generators {

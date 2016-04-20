@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.entities
 
 import java.time.LocalDate
 import java.util.UUID

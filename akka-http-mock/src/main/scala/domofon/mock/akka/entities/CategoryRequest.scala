@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.entities
 
 case class CategoryRequest(
   name: String,
