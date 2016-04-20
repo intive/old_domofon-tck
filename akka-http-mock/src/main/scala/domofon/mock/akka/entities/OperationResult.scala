@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.entities
 
 sealed trait OperationResult {
   def status: String

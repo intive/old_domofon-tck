@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.utils
 
 import java.time.{LocalDate, ZonedDateTime}
 
@@ -64,15 +64,3 @@ object Validators {
 
 }
 
-object ContactRequestValidator {
-  import Validators._
-
-  def apply(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
-    (field("email")(validEmail)(cr.notifyEmail) |@|
-      field("name")(nonEmptyString)(cr.name) |@|
-      field("phone")(nonEmptyString)(cr.phone) |@|
-      field("company")(optional(nonEmptyString))(cr.company) |@|
-      field("adminEmail")(optional(validEmail))(cr.adminEmail) |@|
-      field("fromDate")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _, _, _, _) => cr }
-  }
-}

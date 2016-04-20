@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.utils
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Terminated}
 

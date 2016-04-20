@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.routes
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -9,8 +9,10 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.stream.Materializer
-import domofon.mock.akka.Helpers._
-import domofon.mock.akka.MockRejections.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
+import domofon.mock.akka.utils.{MockMarshallers, Helpers, RejectionsSupport}
+import Helpers._
+import RejectionsSupport.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
+import domofon.mock.akka.entities.{CategoryRequest, CategoryResponse, NotificationResult, OperationSuccessful}
 import spray.json._
 
 import scala.concurrent.duration.FiniteDuration

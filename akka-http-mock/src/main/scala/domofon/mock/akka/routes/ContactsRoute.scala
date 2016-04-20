@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.routes
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -13,10 +13,12 @@ import akka.http.scaladsl.server.directives.Credentials
 import akka.stream.scaladsl.Source
 import akka.stream.{Materializer, OverflowStrategy}
 import cats.data.Validated.{Invalid, Valid}
-import de.heikoseeberger.akkasse.ServerSentEvent
 import de.heikoseeberger.akkasse.EventStreamMarshalling._
-import domofon.mock.akka.Helpers._
-import domofon.mock.akka.MockRejections.TooManyRequestsRejection
+import de.heikoseeberger.akkasse.ServerSentEvent
+import domofon.mock.akka.entities._
+import domofon.mock.akka.utils.Helpers._
+import domofon.mock.akka.utils.RejectionsSupport.TooManyRequestsRejection
+import domofon.mock.akka.utils._
 import spray.json._
 
 import scala.concurrent.duration.{FiniteDuration, _}

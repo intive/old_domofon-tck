@@ -1,4 +1,4 @@
-package domofon.mock.akka
+package domofon.mock.akka.routes
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
