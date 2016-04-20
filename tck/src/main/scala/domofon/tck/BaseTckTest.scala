@@ -103,7 +103,11 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
   }
 
   def authorizeWithSecret(secret: UUID): RequestTransformer = {
-    addHeader(Authorization(OAuth2BearerToken(secret.toString)))
+    authorizeWithSecret(secret.toString)
+  }
+
+  def authorizeWithSecret(secret: String): RequestTransformer = {
+    addHeader(Authorization(OAuth2BearerToken(secret)))
   }
 
   def requestAsString(request: HttpRequest): String = {
