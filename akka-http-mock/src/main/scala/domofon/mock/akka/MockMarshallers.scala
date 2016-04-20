@@ -53,6 +53,26 @@ trait MockMarshallers extends DefaultJsonProtocol {
 
   implicit val contactResponseFormat = jsonFormat12(ContactResponse.apply)
 
+  implicit val categoryRequestFormat = new RootJsonFormat[CategoryRequest] {
+    private[this] val autoFormat = jsonFormat4(CategoryRequest.apply)
+
+    override def write(obj: CategoryRequest): JsValue = obj.toJson(autoFormat)
+
+    override def read(json: JsValue): CategoryRequest = json match {
+      case JsObject(fields) =>
+        val keys = fields.keySet
+        val missing = CategoryRequest.requiredFields -- keys
+        if (missing.isEmpty)
+          json.convertTo[CategoryRequest](autoFormat)
+        else {
+          throw new DeserializationException(s"Category doesn't have required fields: ${missing.mkString(", ")}", fieldNames = missing.toList)
+        }
+      case _ => throw new DeserializationException("Category request must be JSON object")
+    }
+  }
+
+  implicit val categoryResponseFormat = jsonFormat6(CategoryResponse.apply)
+
   implicit val contactCreateResponseFormat = jsonFormat1(ContactCreateResponse.apply)
   implicit val sseUpdatedFormat = jsonFormat1(SseUpdated.apply)
   implicit val isImportantFormat = jsonFormat1(IsImportant.apply)

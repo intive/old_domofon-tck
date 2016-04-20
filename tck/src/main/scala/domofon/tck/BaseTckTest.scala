@@ -9,12 +9,12 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.testkit._
-import domofon.tck.entities.PostContact
+import domofon.tck.entities.{PostCategory, PostContact}
 import org.scalatest.{FunSpec, Matchers}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.Try
+import scala.util.{Random, Try}
 import spray.json._
 
 trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
@@ -29,7 +29,24 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
 
   def acceptJson: HttpRequest => HttpRequest = addHeader(Accept(MediaTypes.`application/json`))
 
-  def contactRequest(): PostContact = PostContact("John Smith", "Company Ltd.", "email@domain.pl", "+48123321123")
+  def randomString(length: Int = 10): String = Random.alphanumeric.take(length).mkString
+
+  def randomSentence(words: Int = 5) = List.fill(words)(randomString(2 + Random.nextInt(5))).mkString(" ")
+
+  def contactRequest(
+    name: String = randomSentence(2), company: String = randomSentence(2)
+  ): PostContact = {
+    PostContact(name, company, "email@domain.pl", "+48123321123")
+  }
+
+  def categoryRequest(
+    name: String = randomString(),
+    description: String = randomSentence(),
+    message: String = "Notification message",
+    isBatch: Boolean = false
+  ): PostCategory = {
+    PostCategory(name, description, message, isBatch)
+  }
 
   def maxSampleLength: Int = 1000
 
@@ -39,6 +56,18 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     import spray.json._
     var uuid: UUID = nonExistentUuid
     val ret = Post("/contacts", cr.toJson) ~> acceptPlain ~~> {
+      status shouldBe StatusCodes.OK
+      uuid = UUID.fromString(responseAs[String])
+    }
+    uuid
+  }
+
+  def postCategoryRequest(cr: PostCategory = categoryRequest()): UUID = {
+    import DomofonMarshalling._
+    import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+    import spray.json._
+    var uuid: UUID = nonExistentUuid
+    val ret = Post("/categories", cr.toJson) ~> acceptPlain ~~> {
       status shouldBe StatusCodes.OK
       uuid = UUID.fromString(responseAs[String])
     }

@@ -9,5 +9,9 @@ trait DomofonTck extends BaseTckTest
   with ChangeContactDeputyTest
   with ChangeContactIsImportantTest
   with DomofonYamlTest
-  with SendNotificationTest
+  with SendContactNotificationTest
   with ContactMessageTest
+  with PostCategoryTest
+  with GetCategoriesTest
+  with SendCategoryNotificationTest
+  with RemoveCategoryItemTest
