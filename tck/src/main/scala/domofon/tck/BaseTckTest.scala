@@ -45,9 +45,9 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest with Adm
     name: String = randomString(),
     description: String = randomSentence(),
     message: String = "Notification message",
-    isBatch: Boolean = false
+    isIndividual: Boolean = false
   ): PostCategory = {
-    PostCategory(name, description, message, isBatch)
+    PostCategory(name, description, message, isIndividual)
   }
 
   def maxSampleLength: Int = 1000

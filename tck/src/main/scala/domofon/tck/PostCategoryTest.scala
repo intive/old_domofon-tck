@@ -47,7 +47,7 @@ trait PostCategoryTest extends BaseTckTest {
       }
     }
 
-    val requiredFields = Set("name", "description", "isBatch", "message")
+    val requiredFields = Set("name", "description", "message")
     for (field <- requiredFields) {
       it(s"Fails when required field '${field}' is missing as application/json") {
         val cr = categoryRequest()

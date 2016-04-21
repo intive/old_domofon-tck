@@ -3,11 +3,11 @@ package domofon.mock.akka.entities
 case class CategoryRequest(
   name: String,
   description: String,
-  isBatch: Boolean,
-  message: String
+  message: String,
+  isIndividual: Boolean = false
 )
 
 case object CategoryRequest {
-  val requiredFields = Set("name", "description", "isBatch", "message")
+  val requiredFields = Set("name", "description", "message")
 }
 

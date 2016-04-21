@@ -12,7 +12,7 @@ import akka.stream.Materializer
 import cats.data.Validated.{Invalid, Valid}
 import domofon.mock.akka.entities._
 import domofon.mock.akka.utils.Helpers._
-import domofon.mock.akka.utils.RejectionsSupport.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
+import domofon.mock.akka.utils.RejectionsSupport.{CategoryIsIndividualRejection, TooManyRequestsRejection}
 import domofon.mock.akka.utils._
 import spray.json._
 
@@ -74,8 +74,9 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
         takeCategoryFromPath { category =>
           path("notify") {
             post {
-              if (category.isBatch) {
-
+              if (category.isIndividual) {
+                reject(CategoryIsIndividualRejection)
+              } else {
                 if (category.nextNotificationAllowedAt.map(!_.isAfter(LocalDateTime.now)).getOrElse(true)) {
                   val updatedCategory = category.copy(
                     nextNotificationAllowedAt = Some(LocalDateTime.now.plusSeconds(notifyDelay.toSeconds))
@@ -88,8 +89,6 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
                 } else {
                   reject(TooManyRequestsRejection("Can't send notifications that often", category.nextNotificationAllowedAt))
                 }
-              } else {
-                reject(CategoryIsNotBatchRejection)
               }
             }
           } ~

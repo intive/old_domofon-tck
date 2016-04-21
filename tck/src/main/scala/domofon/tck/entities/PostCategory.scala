@@ -4,5 +4,5 @@ case class PostCategory(
   name: String,
   description: String,
   message: String,
-  isBatch: Boolean
+  isIndividual: Boolean
 )
