@@ -16,4 +16,6 @@ class PimpedRequestTest extends BaseTckTest {
     }
   }
 
+  override def tckAdminLogin: String = fail("tckAdminLogin shouldn't be used in this test")
+  override def tckAdminPass: String = fail("tckAdminPass shouldn't be used in this test")
 }
