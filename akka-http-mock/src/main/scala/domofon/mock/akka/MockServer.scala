@@ -8,9 +8,9 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.Materializer
 import de.heikoseeberger.akkasse.EventStreamMarshalling
-import domofon.mock.akka.entities.{NotificationResult, ContactResponse, CategoryResponse}
-import domofon.mock.akka.routes.{SwaggerRoute, ContactsRoute, CategoriesRoute}
-import domofon.mock.akka.utils.{Auth, MockMarshallers, RejectionsSupport}
+import domofon.mock.akka.entities.{CategoryResponse, ContactResponse, NotificationResult}
+import domofon.mock.akka.routes.{CategoriesRoute, ContactsRoute, SwaggerRoute}
+import domofon.mock.akka.utils._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -62,10 +62,14 @@ trait MockServer extends Directives
 
 }
 
-case object MockServer {
+object MockServer {
 
-  def apply(serverAddress: String, actorSystem: ActorSystem, mat: Materializer): MockServer = {
+  def apply[T <: AdminCredentials](serverAddress: String, actorSystem: ActorSystem, mat: Materializer, auth: T): MockServer = {
     new MockServer {
+      override def adminLogin = auth.adminLogin
+
+      override def adminPass = auth.adminPass
+
       override implicit def system: ActorSystem = actorSystem
 
       override implicit def materializer: Materializer = mat
