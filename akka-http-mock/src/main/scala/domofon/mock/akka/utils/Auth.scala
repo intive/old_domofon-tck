@@ -12,7 +12,8 @@ trait Auth {
 
   @volatile private[this] var adminSession = UUID.randomUUID()
 
-  lazy val (adminLogin, adminPass) = ("admin", "Z1ON0101") // todo read from config/env
+  lazy val adminLogin = sys.env.getOrElse("MOCK_ADMIN_LOGIN", "admin")
+  lazy val adminPass = sys.env.getOrElse("MOCK_ADMIN_PASSWORD", "P4ssw0rd")
 
   def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[UUID] = {
     case p: Credentials.Provided =>
