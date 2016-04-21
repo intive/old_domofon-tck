@@ -9,12 +9,14 @@ trait Generators {
 
   def generateContact: ContactRequest = sample(for {
     _name <- name
+    _category <- category
     _notifyEmail <- email
     _phone <- phone
     _company <- Gen.some(company)
     _adminEmail <- Gen.some(email)
   } yield ContactRequest(
     name = _name,
+    category = _category,
     notifyEmail = _notifyEmail,
     phone = _phone,
     company = _company,
@@ -43,6 +45,7 @@ trait Generators {
   private def email = arbitraryString(7, 15) map (e => s"$e@example.com")
   private def company = arbitraryCompany
   private def phone = arbitraryPhone
+  private def category = arbitraryUuid
 
   private def sample[T](t: Gen[T]): T = t.sample match {
     case Some(x) => x
@@ -62,5 +65,7 @@ trait Generators {
     x <- Gen.choose(6, 9)
     y <- Gen.listOfN(8, Gen.choose(1, 9))
   } yield s"+48$x${y.mkString}"
+
+  private def arbitraryUuid = Gen.uuid
 
 }

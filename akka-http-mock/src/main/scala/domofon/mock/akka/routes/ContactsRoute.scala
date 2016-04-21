@@ -17,7 +17,7 @@ import de.heikoseeberger.akkasse.EventStreamMarshalling._
 import de.heikoseeberger.akkasse.ServerSentEvent
 import domofon.mock.akka.entities._
 import domofon.mock.akka.utils.Helpers._
-import domofon.mock.akka.utils.RejectionsSupport.TooManyRequestsRejection
+import domofon.mock.akka.utils.RejectionsSupport.{CategoryDoesNotExistRejection, TooManyRequestsRejection}
 import domofon.mock.akka.utils._
 import spray.json._
 
@@ -59,12 +59,23 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
 
     path("contacts") {
       get {
-        complete(contacts.values.map(_.toJson(contactPublicResponseWriter)))
+        parameter("category".as[UUID].?) { categoryIdMaybe =>
+          categoryIdMaybe match {
+            case None =>
+              complete(contacts.values.map(_.toJson(contactPublicResponseWriter)))
+            case Some(categoryId) =>
+              if (categories.contains(categoryId)) {
+                complete(contacts.values.filter(_.category == categoryId).map(_.toJson(contactPublicResponseWriter)))
+              } else {
+                reject(CategoryDoesNotExistRejection(categoryId))
+              }
+          }
+        }
       } ~
         post {
           entity(as[JsObject]) { json =>
             jsonAs[ContactRequest](json) { cr =>
-              ContactRequestValidator(cr) match {
+              ContactRequestValidator(categories.keySet)(cr) match {
                 case Valid(contact) =>
                   val id = UUID.randomUUID()
                   val secret = UUID.randomUUID()

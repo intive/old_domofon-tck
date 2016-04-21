@@ -6,7 +6,7 @@ import java.util.UUID
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
-import domofon.tck.entities.{EntityCreated, ValidationFieldsError}
+import domofon.tck.entities.{EntityCreatedWithSecret, EntityCreated, ValidationFieldsError}
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import spray.json._
 
@@ -72,6 +72,18 @@ trait PostContactTest extends BaseTckTest {
 
     }
 
+    it("Rejects Contact with wrong Category UUID as text/plain") {
+      Post("/contacts", contactRequest(category = nonExistentUuid).toJson) ~> acceptPlain ~~> {
+        status shouldBe StatusCodes.UnprocessableEntity
+      }
+    }
+
+    it("Rejects Contact with wrong Category UUID as application/json") {
+      Post("/contacts", contactRequest(category = nonExistentUuid).toJson) ~> acceptJson ~~> {
+        status shouldBe StatusCodes.UnprocessableEntity
+      }
+    }
+
     it("Accepts proper Contact entity, returns text/plain UUID") {
       Post("/contacts", contactRequest().toJson) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.OK
@@ -85,12 +97,21 @@ trait PostContactTest extends BaseTckTest {
         responseAs[EntityCreated].id shouldBe a[UUID]
       }
     }
-
+    /*
+    it("Accepts proper Contact entity, returns application/json with UUID and secret") {
+      Post("/contacts", contactRequest().toJson) ~> acceptJson ~~> {
+        status shouldBe StatusCodes.OK
+        val created = responseAs[EntityCreatedWithSecret]
+        created.id shouldBe a[UUID]
+        created.secret shouldBe a[UUID]
+      }
+    }
+*/
     val requiredFields = Set("name", "notifyEmail", "phone")
     for (field <- requiredFields) {
-      val cr = contactRequest()
-      val json = JsObject(cr.toJson.asJsObject.fields - field)
       it(s"Fails when required field '${field}' is missing as application/json") {
+        val cr = contactRequest()
+        val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post("/contacts", json) ~> acceptJson ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
           responseAs[ValidationFieldsError].fields should contain(field)
@@ -109,9 +130,9 @@ trait PostContactTest extends BaseTckTest {
     }
 
     for (field <- requiredFields) {
-      val cr = contactRequest()
-      val json = JsObject(cr.toJson.asJsObject.fields - field)
       it(s"Fails when required field '${field}' is missing as text/plain") {
+        val cr = contactRequest()
+        val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post("/contacts", json) ~> acceptPlain ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
           responseAs[String] should include(field)

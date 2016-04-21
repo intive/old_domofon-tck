@@ -46,5 +46,32 @@ trait GetContactsTest extends BaseTckTest {
       }
     }
 
+    it("Contacts from different categories are filtered out") {
+      val categoryId: UUID = postCategoryRequest().id
+      val otherContactId: UUID = postContactRequest().id
+      Get(s"/contacts?category=${categoryId}") ~> acceptJson ~~> {
+        status shouldBe StatusCodes.OK
+        val contacts = responseAs[List[GetContact]]
+        contacts should have size (0)
+      }
+    }
+
+    it("Is possible to filter contacts by category") {
+      val categoryId: UUID = postCategoryRequest().id
+      val sameCategoryId: UUID = postContactRequest(contactRequest(category = categoryId)).id
+      Get(s"/contacts?category=${categoryId}") ~> acceptJson ~~> {
+        status shouldBe StatusCodes.OK
+        val contacts = responseAs[List[GetContact]]
+        contacts.filter(_.id === sameCategoryId) should have size (1)
+      }
+    }
+
+    it("Filtering by non existent category is BadRequest") {
+      val categoryId: UUID = nonExistentUuid
+      Get(s"/contacts?category=${categoryId}") ~> acceptJson ~~> {
+        status shouldBe StatusCodes.BadRequest
+      }
+    }
+
   }
 }

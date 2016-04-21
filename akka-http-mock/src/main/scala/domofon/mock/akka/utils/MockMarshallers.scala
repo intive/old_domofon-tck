@@ -6,9 +6,14 @@ import java.util.UUID
 
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.MediaTypes
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.unmarshalling.{Unmarshaller, FromStringUnmarshaller, FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.util.FastFuture
+import akka.stream.Materializer
 import domofon.mock.akka.entities._
 import spray.json._
+
+import scala.concurrent.{Future, ExecutionContext}
+import scala.util.Try
 
 trait MockMarshallers extends DefaultJsonProtocol {
 
@@ -30,13 +35,16 @@ trait MockMarshallers extends DefaultJsonProtocol {
     override def write(obj: LocalDateTime) = JsString(obj.toString)
   })
 
-  implicit val uuidJsonWriter = lift(new JsonWriter[UUID] {
-    override def write(obj: UUID) = JsString(obj.toString)
-  })
+  implicit val uuidJsonFormat = new JsonFormat[UUID] {
+    override def read(json: JsValue): UUID = (json: @unchecked) match {
+      case JsString(s) => UUID.fromString(s)
+    }
+    override def write(obj: UUID): JsValue = JsString(obj.toString)
+  }
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
   implicit val contactRequestFormat = new RootJsonFormat[ContactRequest] {
-    private[this] val autoFormat = jsonFormat7(ContactRequest.apply)
+    private[this] val autoFormat = jsonFormat8(ContactRequest.apply)
 
     override def write(obj: ContactRequest): JsValue = obj.toJson(autoFormat)
 
@@ -52,8 +60,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
       case _ => throw new DeserializationException("Contact request must be JSON object")
     }
   }
-
-  implicit val contactResponseFormat = jsonFormat13(ContactResponse.apply)
 
   implicit val categoryRequestFormat = new RootJsonFormat[CategoryRequest] {
     private[this] val autoFormat = jsonFormat4(CategoryRequest.apply)
@@ -80,12 +86,20 @@ trait MockMarshallers extends DefaultJsonProtocol {
   implicit val missingFieldsErrorFormat = jsonFormat2(MissingFieldsError.apply)
   implicit val tooManyRequestsErrorFormat = jsonFormat2(TooManyRequestsError.apply)
 
-  val ContatResponseHiddenFields = Seq("message", "secret")
-  val contactPublicResponseWriter = new JsonWriter[ContactResponse] {
+  val contatResponseHiddenFields = Seq("message", "secret")
+  implicit val contactPublicResponseWriter = new JsonWriter[ContactResponse] {
+    private[this] val autoFormat = jsonFormat14(ContactResponse.apply)
     override def write(obj: ContactResponse): JsValue = {
-      val json = obj.toJson(contactResponseFormat).asJsObject
-      JsObject(json.fields -- ContatResponseHiddenFields)
+      val json = obj.toJson(autoFormat).asJsObject
+      JsObject(json.fields -- contatResponseHiddenFields)
     }
+  }
+
+  implicit val uuidFromString: FromStringUnmarshaller[UUID] = new Unmarshaller[String, UUID] {
+    override def apply(value: String)(
+      implicit
+      ec: ExecutionContext, materializer: Materializer
+    ): Future[UUID] = FastFuture.apply(Try(UUID.fromString(value)))
   }
 
   implicit val missingFieldsErrorMarshaller: ToEntityMarshaller[MissingFieldsError] = Marshaller.oneOf(
@@ -103,6 +117,15 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.oneOf(
       Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg),
       Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => JsObject(("error", JsString(msg))).prettyPrint)
+    )
+  }
+
+  implicit val categoryDoesNotExistErrorMarshaller: ToEntityMarshaller[CategoryDoesNotExistError] = {
+    def msg(cid: UUID) = s"Category ${cid} does not exist"
+    Marshaller.oneOf(
+      Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg(e.categoryId)),
+      Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e =>
+        JsObject(("error", JsString(msg(e.categoryId))), ("category", JsString(e.categoryId.toString))).prettyPrint)
     )
   }
 

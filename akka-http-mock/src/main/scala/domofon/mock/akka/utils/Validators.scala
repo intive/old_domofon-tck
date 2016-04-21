@@ -28,6 +28,11 @@ object Validators {
     else Invalid(NonEmptyList(s"string cannot be empty"))
   }
 
+  def existsElement[T](elements: scala.collection.Set[T], elementName: String = "element"): T => ValidatedNel[Message, T] = { s =>
+    if (elements.contains(s)) Valid(s)
+    else Invalid(NonEmptyList(s"${elementName} does not exists"))
+  }
+
   def optional[A, B](validation: A => ValidatedNel[Message, B]): Option[A] => ValidatedNel[Message, Option[B]] = {
     case Some(a) => validation(a).map(v => Option(v))
     case None    => Valid(None)
