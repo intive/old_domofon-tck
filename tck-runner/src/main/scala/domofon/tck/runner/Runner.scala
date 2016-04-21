@@ -1,7 +1,7 @@
 package domofon.tck.runner
 
 import akka.http.scaladsl.model.Uri
-import domofon.tck.DomofonTck
+import domofon.tck.{TckEnvCredentials, DomofonTck}
 
 import scala.util.Try
 
@@ -10,12 +10,15 @@ object Runner extends App {
   println(runnerHeader)
 
   if (args.isEmpty) {
-    println("You need to provide hostname of target Server hosting Domofon")
+    println("You need to provide hostname of target Server hosting Domofon eg. http://localhost:8080")
     sys.exit(1)
   } else {
 
-    class ExternalDomofonTck extends DomofonTck with ExternalServer {
+    class ExternalDomofonTck extends DomofonTck with ExternalServer with TckEnvCredentials {
       override protected def domofonUri: Uri = Uri(args.head)
+      println(s"Using admin login: $tckAdminLogin and password: $tckAdminPass")
+      println(s"You can change them using ${TckEnvCredentials.AdminLoginEnvName} " +
+        s"and ${TckEnvCredentials.AdminPasswordEnvName} environment variables.")
     }
 
     Try {

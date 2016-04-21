@@ -9,6 +9,7 @@ import akka.stream._
 import ch.megard.akka.http.cors.CorsDirectives._
 import ch.megard.akka.http.cors.CorsSettings
 import domofon.mock.akka.MockServer
+import domofon.mock.akka.utils.AdminCredentialsFromEnv
 
 import scala.collection.immutable
 import scala.concurrent.Await
@@ -54,7 +55,7 @@ object Server extends App {
 
       import system.dispatcher
 
-      val mockServer = MockServer(s"${getHostname(host)}:${port}", system, materializer)
+      val mockServer = MockServer(s"${getHostname(host)}:${port}", system, materializer, AdminCredentialsFromEnv)
 
       val corsSettings = CorsSettings.defaultSettings.copy(allowedMethods = immutable.Seq(
         HttpMethods.GET, HttpMethods.POST, HttpMethods.PUT, HttpMethods.DELETE
@@ -82,6 +83,12 @@ object Server extends App {
           println(s"http://blstream.github.io/domofon-api/#swagger=${serverUrl}/domofon.yaml")
           println()
           println()
+          println("Admin login is:")
+          println(mockServer.adminLogin)
+          println("Admin password is:")
+          println(mockServer.adminPass)
+          println()
+          println(s"You can change them using ${AdminCredentialsFromEnv.MockAdminLoginEnv} and ${AdminCredentialsFromEnv.MockAdminPasswordEnv}")
 
         case Failure(e) =>
           println("Unable to bind, exiting...")

@@ -17,7 +17,7 @@ import scala.concurrent.duration._
 import scala.util.{Random, Try}
 import spray.json._
 
-trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest with AdminCredentials {
+trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest with AdminLogin {
 
   implicit val routeTestTimeout: RouteTestTimeout = RouteTestTimeout(new DurationInt(30).second)
 

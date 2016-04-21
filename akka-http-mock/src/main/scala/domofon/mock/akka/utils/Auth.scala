@@ -7,12 +7,11 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.Credentials
 import domofon.mock.akka.entities.{LoginToken, ContactResponse}
 
-trait Auth {
+trait Auth extends AdminCredentials {
+
   import domofon.mock.akka.utils.MockMarshallers._
 
   @volatile private[this] var adminSession = UUID.randomUUID()
-
-  lazy val (adminLogin, adminPass) = ("admin", "Z1ON0101") // todo read from config/env
 
   def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[UUID] = {
     case p: Credentials.Provided =>
@@ -45,4 +44,21 @@ trait Auth {
       }
     }
   }
+}
+
+trait AdminCredentials {
+  def adminLogin: String
+  def adminPass: String
+}
+
+trait AdminCredentialsFromEnv extends AdminCredentials {
+  import AdminCredentialsFromEnv._
+  def adminLogin: String = sys.env.getOrElse(MockAdminLoginEnv, "admin")
+  def adminPass: String = sys.env.getOrElse(MockAdminPasswordEnv, "P4ssw0rd")
+}
+
+object AdminCredentialsFromEnv extends AdminCredentialsFromEnv {
+  val MockAdminLoginEnv = "MOCK_ADMIN_LOGIN"
+  val MockAdminPasswordEnv = "MOCK_ADMIN_PASSWORD"
+
 }
