@@ -73,12 +73,14 @@ Both `tck-runner` and `akka-http-mock-server` are available as docker images.
 
 To run mock server
 ```
+docker pull lustefaniak/domofon-akka-http-mock-server
 docker run -p 8080:8080 --rm lustefaniak/domofon-akka-http-mock-server:latest
 ```
 
 Next you can run TCK suite using:
 
 ```
+docker pull lustefaniak/domofon-tck-runner
 docker run --rm lustefaniak/domofon-tck-runner:latest http://localhost:8080
 ```
 
