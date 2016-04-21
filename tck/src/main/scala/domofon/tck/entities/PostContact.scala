@@ -5,9 +5,9 @@ import java.util.UUID
 case class PostContact(
   name: String,
   category: UUID,
-  company: String,
   notifyEmail: String,
-  phone: String,
+  company: Option[String] = None,
+  phone: Option[String] = None,
   adminEmail: Option[String] = None,
   fromDate: Option[java.time.LocalDate] = None,
   tillDate: Option[java.time.LocalDate] = None

@@ -11,7 +11,7 @@ trait Generators {
     _name <- name
     _category <- category
     _notifyEmail <- email
-    _phone <- phone
+    _phone <- optionalPhone
     _company <- Gen.some(company)
     _adminEmail <- Gen.some(email)
   } yield ContactRequest(
@@ -45,6 +45,7 @@ trait Generators {
   private def email = arbitraryString(7, 15) map (e => s"$e@example.com")
   private def company = arbitraryCompany
   private def phone = arbitraryPhone
+  private def optionalPhone = Gen.option(arbitraryPhone)
   private def category = arbitraryUuid
 
   private def sample[T](t: Gen[T]): T = t.sample match {

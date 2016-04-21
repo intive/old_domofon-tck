@@ -97,7 +97,7 @@ trait PostContactTest extends BaseTckTest {
         responseAs[EntityCreated].id shouldBe a[UUID]
       }
     }
-    /*
+
     it("Accepts proper Contact entity, returns application/json with UUID and secret") {
       Post("/contacts", contactRequest().toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -106,8 +106,8 @@ trait PostContactTest extends BaseTckTest {
         created.secret shouldBe a[UUID]
       }
     }
-*/
-    val requiredFields = Set("name", "notifyEmail", "phone")
+
+    val requiredFields = Set("name", "notifyEmail")
     for (field <- requiredFields) {
       it(s"Fails when required field '${field}' is missing as application/json") {
         val cr = contactRequest()
