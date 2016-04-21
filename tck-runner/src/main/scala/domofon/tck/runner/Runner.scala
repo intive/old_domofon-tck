@@ -16,6 +16,8 @@ object Runner extends App {
 
     class ExternalDomofonTck extends DomofonTck with ExternalServer {
       override protected def domofonUri: Uri = Uri(args.head)
+      println(s"Using admin login: $TckAdminLogin and password: $TckAdminPass")
+      println(s"You can change them using $AdminLoginEnvName and $AdminPasswordEnvName environment variables.")
     }
 
     Try {

@@ -17,7 +17,7 @@ trait AdminLoginTest extends BaseTckTest with AdminCredentials {
       }
     }
     it("should respond with a token of an admin session for correct credentials via Basic") {
-      Get("/login") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
+      Get("/login") ~> addCredentials(BasicHttpCredentials(TckAdminLogin, TckAdminPass)) ~~> {
         status should equal(StatusCodes.OK)
       }
     }
@@ -26,13 +26,16 @@ trait AdminLoginTest extends BaseTckTest with AdminCredentials {
 }
 
 trait AdminCredentials { self: BaseTckTest =>
-  val AdminLogin = "admin"
-  val AdminPass = "Z1ON0101" // todo read from env/config
   type AdminToken = String
+  val AdminLoginEnvName = "TCK_ADMIN_LOGIN"
+  val AdminPasswordEnvName = "TCK_ADMIN_PASSWORD"
+
+  lazy val TckAdminLogin = sys.env.getOrElse(AdminLoginEnvName, "admin")
+  lazy val TckAdminPass = sys.env.getOrElse(AdminPasswordEnvName, "P4ssw0rd")
 
   def loginAdmin: AdminToken = {
     var adminToken = nonExistentUuid.toString
-    Get("/login") ~> addCredentials(BasicHttpCredentials(AdminLogin, AdminPass)) ~~> {
+    Get("/login") ~> addCredentials(BasicHttpCredentials(TckAdminLogin, TckAdminPass)) ~~> {
       status should equal(StatusCodes.OK)
       adminToken = responseAs[AdminToken]
     }
