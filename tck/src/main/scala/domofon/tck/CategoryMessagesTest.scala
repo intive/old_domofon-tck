@@ -117,5 +117,18 @@ trait CategoryMessagesTest extends BaseTckTest {
         responseAs[List[CategoryMessage]].head.message should equal(updatedMessage)
       }
     }
+
+    it("should respond with Unauthorized without admin token") {
+      val categoryId = postCategoryRequest().id
+      var msgId = nonExistentUuid
+      Get(s"/categories/$categoryId/messages") ~~> {
+        msgId = responseAs[List[CategoryMessage]].head.id
+      }
+
+      val updatedMessage = "no elo"
+      Put(s"/categories/$categoryId/messages/$msgId", updatedMessage) ~~> {
+        status should equal(StatusCodes.Unauthorized)
+      }
+    }
   }
 }
