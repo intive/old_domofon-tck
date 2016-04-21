@@ -17,7 +17,7 @@ import scala.concurrent.duration._
 import scala.util.{Random, Try}
 import spray.json._
 
-trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
+trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest with AdminCredentials {
 
   implicit val routeTestTimeout: RouteTestTimeout = RouteTestTimeout(new DurationInt(30).second)
 
@@ -64,12 +64,12 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
     result
   }
 
-  def postCategoryRequest(cr: PostCategory = categoryRequest()): EntityCreated = {
+  def postCategoryRequest(cr: PostCategory = categoryRequest(), adminToken: AdminToken = loginAdmin): EntityCreated = {
     import DomofonMarshalling._
     import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
     import spray.json._
     var result = EntityCreated(nonExistentUuid)
-    val ret = Post("/categories", cr.toJson) ~> acceptJson ~~> {
+    val ret = Post("/categories", cr.toJson) ~> authorizeWithSecret(adminToken) ~> acceptJson ~~> {
       status shouldBe StatusCodes.OK
       result = responseAs[EntityCreated]
     }

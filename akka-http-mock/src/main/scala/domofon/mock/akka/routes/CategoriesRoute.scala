@@ -10,17 +10,17 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.stream.Materializer
 import cats.data.Validated.{Invalid, Valid}
-import domofon.mock.akka.utils._
-import Helpers._
-import RejectionsSupport.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
 import domofon.mock.akka.entities._
+import domofon.mock.akka.utils.Helpers._
+import domofon.mock.akka.utils.RejectionsSupport.{CategoryIsNotBatchRejection, TooManyRequestsRejection}
+import domofon.mock.akka.utils._
 import spray.json._
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-trait CategoriesRoute extends MockMarshallers with SprayJsonSupport {
+trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
 
   implicit def system: ActorSystem
 
@@ -29,6 +29,7 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport {
   private[this] implicit def executionContext: ExecutionContext = system.dispatcher
 
   def notifyDelay: FiniteDuration
+
   def sendNotifications(categoryResponse: CategoryResponse): Future[NotificationResult]
 
   def categoriesRoute(categories: scala.collection.concurrent.TrieMap[UUID, CategoryResponse]): Route = {
@@ -53,16 +54,17 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport {
         complete(categories.values.toJson)
       } ~
         post {
-          entity(as[JsObject]) { json =>
-            jsonAs[CategoryRequest](json) { cr =>
-              CategoryRequestValidator(cr) match {
-                case Valid(contact) =>
-                  val id = UUID.randomUUID()
-                  val secret = UUID.randomUUID()
-                  categories.update(id, CategoryResponse.from(id, cr))
-                  complete(CategoryCreated(id))
-                case Invalid(nel) =>
-                  complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
+          authenticateAdminToken {
+            entity(as[JsObject]) { json =>
+              jsonAs[CategoryRequest](json) { cr =>
+                CategoryRequestValidator(cr) match {
+                  case Valid(contact) =>
+                    val id = UUID.randomUUID()
+                    categories.update(id, CategoryResponse.from(id, cr))
+                    complete(CategoryCreated(id))
+                  case Invalid(nel) =>
+                    complete((StatusCodes.UnprocessableEntity, ValidationError.fromNel(nel).toJson))
+                }
               }
             }
           }
@@ -96,8 +98,10 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport {
                 complete(category.toJson)
               } ~
                 delete {
-                  categories.remove(category.id)
-                  complete(OperationSuccessful)
+                  authenticateAdminToken {
+                    categories.remove(category.id)
+                    complete(OperationSuccessful)
+                  }
                 }
             }
         }

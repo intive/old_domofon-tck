@@ -15,34 +15,33 @@ trait PostCategoryTest extends BaseTckTest {
   private[this] val categoriesEndpoint = "/categories"
 
   describe(s"POST /categories") {
-
     it("Discards wrong request type body") {
-      Post(categoriesEndpoint, "") ~~> {
+      Post(categoriesEndpoint, "") ~> authorizeWithSecret(loginAdmin) ~~> {
         status shouldBe StatusCodes.UnsupportedMediaType
       }
     }
 
     it("Discards request as Json array") {
-      Post(categoriesEndpoint, JsArray()) ~~> {
+      Post(categoriesEndpoint, JsArray()) ~> authorizeWithSecret(loginAdmin) ~~> {
         status shouldBe StatusCodes.BadRequest
       }
     }
 
     it("Discards empty json object") {
-      Post(categoriesEndpoint, JsObject()) ~~> {
+      Post(categoriesEndpoint, JsObject()) ~> authorizeWithSecret(loginAdmin) ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
       }
     }
 
     it("Accepts proper Category entity, returns text/plain UUID") {
-      Post(categoriesEndpoint, categoryRequest().toJson) ~> acceptPlain ~~> {
+      Post(categoriesEndpoint, categoryRequest().toJson) ~> authorizeWithSecret(loginAdmin) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.OK
         responseAs[UUID] shouldBe a[UUID]
       }
     }
 
     it("Accepts proper Category entity, returns application/json with UUID") {
-      Post(categoriesEndpoint, categoryRequest().toJson) ~> acceptJson ~~> {
+      Post(categoriesEndpoint, categoryRequest().toJson) ~> authorizeWithSecret(loginAdmin) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[EntityCreated].id shouldBe a[UUID]
       }
@@ -53,7 +52,7 @@ trait PostCategoryTest extends BaseTckTest {
       it(s"Fails when required field '${field}' is missing as application/json") {
         val cr = categoryRequest()
         val json = JsObject(cr.toJson.asJsObject.fields - field)
-        Post(categoriesEndpoint, json) ~> acceptJson ~~> {
+        Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptJson ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
           responseAs[ValidationFieldsError].fields should contain(field)
         }
@@ -63,7 +62,7 @@ trait PostCategoryTest extends BaseTckTest {
     it(s"When failing it notifies about all missing fields as application/json") {
       val cr = categoryRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
-      Post(categoriesEndpoint, json) ~> acceptJson ~~> {
+      Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptJson ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
         val r = requiredFields -- responseAs[ValidationFieldsError].fields
         r shouldBe empty
@@ -74,7 +73,7 @@ trait PostCategoryTest extends BaseTckTest {
       it(s"Fails when required field '${field}' is missing as text/plain") {
         val cr = categoryRequest()
         val json = JsObject(cr.toJson.asJsObject.fields - field)
-        Post(categoriesEndpoint, json) ~> acceptPlain ~~> {
+        Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptPlain ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
           responseAs[String] should include(field)
         }
@@ -84,7 +83,7 @@ trait PostCategoryTest extends BaseTckTest {
     it(s"When failing it notifies about all missing fields text/plain") {
       val cr = categoryRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
-      Post(categoriesEndpoint, json) ~> acceptPlain ~~> {
+      Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
         val r = responseAs[String]
         requiredFields.foreach {
@@ -105,9 +104,20 @@ trait PostCategoryTest extends BaseTckTest {
       val invalidParameters = Table(("field", "value"), cartesianProduct: _*)
       forAll(invalidParameters) { (field, value) =>
         val invalidContactRequest = JsObject(validCategoryRequest.fields.updated(field, value))
-        Post("/categories", invalidContactRequest.toJson) ~~> {
+        Post("/categories", invalidContactRequest.toJson) ~> authorizeWithSecret(loginAdmin) ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
         }
+      }
+    }
+
+    it("Should respond with Unauthorized for missing admin token") {
+      Post(categoriesEndpoint, categoryRequest().toJson) ~> acceptJson ~~> {
+        status shouldBe StatusCodes.Unauthorized
+      }
+    }
+    it("Should respond with Unauthorized for invalid admin token") {
+      Post(categoriesEndpoint, categoryRequest().toJson) ~> authorizeWithSecret("w_paryzu_najlepsze_kasztany") ~> acceptJson ~~> {
+        status shouldBe StatusCodes.Unauthorized
       }
     }
 
