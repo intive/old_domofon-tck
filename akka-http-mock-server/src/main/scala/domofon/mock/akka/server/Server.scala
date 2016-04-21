@@ -16,6 +16,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 object Server extends App {
+  val serverHeader = s"${BuildInfo.name} (${BuildInfo.version}) - Domofon API Mock Server using akka-http"
 
   case class Config(listen: Uri = Uri("http://0.0.0.0:8080/"))
 
@@ -26,7 +27,7 @@ object Server extends App {
   }
 
   val parser = new scopt.OptionParser[Config]("domofon-akka-http-mock-server") {
-    head("Domofon API Mock Server usign akka-http")
+    head(serverHeader)
 
     opt[Uri]('l', "listen") action { (x, c) =>
       c.copy(listen = x)
@@ -41,6 +42,10 @@ object Server extends App {
     case Some(conf) =>
       val host = conf.listen.authority.host.address()
       val port = conf.listen.authority.port
+
+      println()
+      println(serverHeader)
+      println()
 
       println(s"Will try to bind on ${host}:${port}")
 
