@@ -8,6 +8,8 @@ To make your life easier we created few compliance tests which could be used wit
 
 Java 8 is required.
 
+To get help: [![Join the chat at https://gitter.im/blstream/domofon-tck](https://badges.gitter.im/blstream/domofon-tck.svg)](https://gitter.im/blstream/domofon-tck?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Running TCK tests
  
  There are few possible ways to use `domofon-tck`, pick the one which suites you most:
