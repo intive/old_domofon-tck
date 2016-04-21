@@ -7,6 +7,6 @@ case class GetCategory(
   name: String,
   description: String,
   messages: List[String],
-  isBatch: Boolean
+  isIndividual: Boolean
 )
 

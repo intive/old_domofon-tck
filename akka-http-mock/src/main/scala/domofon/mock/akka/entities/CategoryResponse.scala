@@ -7,7 +7,7 @@ case class CategoryResponse(
   name: String,
   description: String,
   messages: List[String],
-  isBatch: Boolean,
+  isIndividual: Boolean,
   nextNotificationAllowedAt: Option[java.time.LocalDateTime] = None
 )
 
@@ -18,7 +18,7 @@ object CategoryResponse {
       cr.name,
       cr.description,
       List(cr.message),
-      cr.isBatch
+      cr.isIndividual
     )
   }
 }

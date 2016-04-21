@@ -112,8 +112,8 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
   )
 
-  implicit val categoryIsNotBatchErrorMarshaller: ToEntityMarshaller[CategoryIsNotBatchError.type] = {
-    val msg = "Category is not Batch, make sure isBatch = true"
+  implicit val categoryIsIndividualErrorMarshaller: ToEntityMarshaller[CategoryIsIndividualError.type] = {
+    val msg = "Category is Individual, you must send notifications to individual Contacts"
     Marshaller.oneOf(
       Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg),
       Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => JsObject(("error", JsString(msg))).prettyPrint)
