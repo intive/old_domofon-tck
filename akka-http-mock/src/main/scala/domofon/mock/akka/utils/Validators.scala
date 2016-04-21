@@ -9,7 +9,7 @@ import cats.std.list._
 import cats.SemigroupK
 import cats.Functor
 import cats.data.Validated.{Invalid, Valid}
-import cats.syntax.apply
+import cats.syntax.functor._
 import uk.gov.hmrc.emailaddress.EmailAddress
 
 import scala.util.{Failure, Success, Try}
@@ -19,8 +19,10 @@ object Validators {
   type FieldName = String
   type Message = String
 
+  implicit val nelErrorSemigroup = SemigroupK[NonEmptyList].algebra[Error]
+
   def field[A, B](fieldName: FieldName)(validation: A => ValidatedNel[Message, B]): A => ValidatedNel[Error, B] = { value =>
-    validation(value).leftMap(Functor[NonEmptyList].map(_)(msg => (fieldName, msg)))
+    validation(value).leftMap(_.map(msg => (fieldName, msg)))
   }
 
   def nonEmptyString: String => ValidatedNel[Message, String] = { s =>
@@ -45,13 +47,6 @@ object Validators {
       Invalid(NonEmptyList(s"email $email is invalid"))
   }
 
-  def validDate(date: String): ValidatedNel[Message, ZonedDateTime] = {
-    Try(java.time.ZonedDateTime.parse(date)) match {
-      case Success(zdt) => Valid(zdt)
-      case Failure(_)   => Invalid(NonEmptyList(s"date $date is invalid"))
-    }
-  }
-
   def validDateRange(fromO: Option[LocalDate], tillO: Option[LocalDate]): ValidatedNel[Message, Option[(LocalDate, LocalDate)]] = {
     (fromO, tillO) match {
       case (Some(from), Some(till)) if from.isBefore(till) || from.isEqual(till) =>
@@ -64,8 +59,6 @@ object Validators {
         Invalid(NonEmptyList("either both dates must be defined or none"))
     }
   }
-
-  implicit val nelErrorSemigroup = SemigroupK[NonEmptyList].algebra[Error]
 
 }
 
