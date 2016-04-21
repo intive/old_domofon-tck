@@ -10,7 +10,7 @@ case class ContactResponse(
   category: UUID,
   company: Option[String],
   notifyEmail: String,
-  phone: String,
+  phone: Option[String],
   adminEmail: String,
   isImportant: Boolean,
   message: String,

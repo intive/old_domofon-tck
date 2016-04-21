@@ -22,7 +22,7 @@ object ContactRequestValidator {
     (field("email")(validEmail)(cr.notifyEmail) |@|
       field("name")(nonEmptyString)(cr.name) |@|
       field("category")(existsElement(categoryIds, "category"))(cr.category) |@|
-      field("phone")(nonEmptyString)(cr.phone) |@|
+      field("phone")(optional(nonEmptyString))(cr.phone) |@|
       field("company")(optional(nonEmptyString))(cr.company) |@|
       field("adminEmail")(optional(validEmail))(cr.adminEmail) |@|
       field("fromDate")(validDateRange _ tupled)((cr.fromDate, cr.tillDate))).map { (_, _, _, _, _, _, _) => cr }

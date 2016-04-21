@@ -6,7 +6,7 @@ case class ContactRequest(
   name: String,
   category: UUID,
   notifyEmail: String,
-  phone: String,
+  phone: Option[String] = None,
   company: Option[String] = None,
   adminEmail: Option[String] = None,
   fromDate: Option[java.time.LocalDate] = None,
@@ -14,5 +14,5 @@ case class ContactRequest(
 )
 
 case object ContactRequest {
-  def requiredFields: Set[String] = Set("name", "notifyEmail", "phone")
+  def requiredFields: Set[String] = Set("name", "notifyEmail")
 }
