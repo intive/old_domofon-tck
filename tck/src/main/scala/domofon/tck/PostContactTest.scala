@@ -73,13 +73,13 @@ trait PostContactTest extends BaseTckTest {
     }
 
     it("Rejects Contact with wrong Category UUID as text/plain") {
-      Post("/contacts", contactRequest(categoryId = nonExistentUuid).toJson) ~> acceptPlain ~~> {
+      Post("/contacts", contactRequest(category = nonExistentUuid).toJson) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
       }
     }
 
     it("Rejects Contact with wrong Category UUID as application/json") {
-      Post("/contacts", contactRequest(categoryId = nonExistentUuid).toJson) ~> acceptJson ~~> {
+      Post("/contacts", contactRequest(category = nonExistentUuid).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
       }
     }
