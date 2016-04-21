@@ -6,9 +6,14 @@ import java.util.UUID
 
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.MediaTypes
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.unmarshalling.{Unmarshaller, FromStringUnmarshaller, FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
+import akka.http.scaladsl.util.FastFuture
+import akka.stream.Materializer
 import domofon.mock.akka.entities._
 import spray.json._
+
+import scala.concurrent.{Future, ExecutionContext}
+import scala.util.Try
 
 trait MockMarshallers extends DefaultJsonProtocol {
 
@@ -90,6 +95,13 @@ trait MockMarshallers extends DefaultJsonProtocol {
     }
   }
 
+  implicit val uuidFromString: FromStringUnmarshaller[UUID] = new Unmarshaller[String, UUID] {
+    override def apply(value: String)(
+      implicit
+      ec: ExecutionContext, materializer: Materializer
+    ): Future[UUID] = FastFuture.apply(Try(UUID.fromString(value)))
+  }
+
   implicit val missingFieldsErrorMarshaller: ToEntityMarshaller[MissingFieldsError] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => e.message),
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
@@ -105,6 +117,15 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.oneOf(
       Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg),
       Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => JsObject(("error", JsString(msg))).prettyPrint)
+    )
+  }
+
+  implicit val categoryDoesNotExistErrorMarshaller: ToEntityMarshaller[CategoryDoesNotExistError] = {
+    def msg(cid: UUID) = s"Category ${cid} does not exist"
+    Marshaller.oneOf(
+      Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg(e.categoryId)),
+      Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e =>
+        JsObject(("error", JsString(msg(e.categoryId))), ("category", JsString(e.categoryId.toString))).prettyPrint)
     )
   }
 
