@@ -8,7 +8,7 @@ trait RemoveCategoryItemTest extends BaseTckTest {
 
   describe("DELETE /categories/{id}") {
 
-    it("When cateogry doesn't exist 404 is returned") {
+    it("When category doesn't exist 404 is returned") {
 
       Delete(s"/categories/$nonExistentUuid") ~~> {
         status shouldBe StatusCodes.NotFound
@@ -17,8 +17,8 @@ trait RemoveCategoryItemTest extends BaseTckTest {
 
     it("Remove category when one exists") {
       val uuid: UUID = postCategoryRequest().id
-
-      Delete(s"/categories/$uuid") ~~> {
+      val token = loginAdmin
+      Delete(s"/categories/$uuid") ~> authorizeWithSecret(token) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
