@@ -10,7 +10,7 @@ object Runner extends App {
   println(runnerHeader)
 
   if (args.isEmpty) {
-    println("You need to provide hostname of target Server hosting Domofon")
+    println("You need to provide hostname of target Server hosting Domofon eg. http://localhost:8080")
     sys.exit(1)
   } else {
 
