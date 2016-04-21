@@ -34,7 +34,7 @@ All tests use `ScalatestRouteTest` from akka-http testkit. To get started add SB
   ```
   resolvers += Resolver.bintrayRepo("lustefaniak", "domofon")
   
-  libraryDependencies += "com.blstream.domofon" %% "tck" %% "0.3.0" % "test"
+  libraryDependencies += "com.blstream.domofon" %% "tck" %% "0.4.0" % "test"
   ```
   
 **TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
@@ -73,13 +73,13 @@ Both `tck-runner` and `akka-http-mock-server` are available as docker images.
 
 To run mock server
 ```
-docker run -p 8080:8080 --rm lustefaniak/domofon-akka-http-mock-server:0.3.0
+docker run -p 8080:8080 --rm lustefaniak/domofon-akka-http-mock-server:latest
 ```
 
 Next you can run TCK suite using:
 
 ```
-docker run --rm lustefaniak/domofon-tck-runner:0.3.0 http://localhost:8080
+docker run --rm lustefaniak/domofon-tck-runner:latest http://localhost:8080
 ```
 
 If you are using Docker for Mac or Docker for Windows, you might have to use `docker.local` instead of `localhost`.
