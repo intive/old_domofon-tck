@@ -82,6 +82,12 @@ object Server extends App {
           println(s"http://blstream.github.io/domofon-api/#swagger=${serverUrl}/domofon.yaml")
           println()
           println()
+          println("Admin login is:")
+          println(mockServer.adminLogin)
+          println("Admin password is:")
+          println(mockServer.adminPass)
+          println()
+          println()
 
         case Failure(e) =>
           println("Unable to bind, exiting...")
