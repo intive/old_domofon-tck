@@ -6,6 +6,9 @@ import domofon.tck.DomofonTck
 import scala.util.Try
 
 object Runner extends App {
+  val runnerHeader = s"${BuildInfo.name} (${BuildInfo.version}) - Domofon API TCK tests runner"
+  println(runnerHeader)
+
   if (args.isEmpty) {
     println("You need to provide hostname of target Server hosting Domofon")
     sys.exit(1)
