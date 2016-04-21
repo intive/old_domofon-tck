@@ -17,8 +17,7 @@ trait RemoveCategoryItemTest extends BaseTckTest {
 
     it("Remove category when one exists") {
       val uuid: UUID = postCategoryRequest().id
-      val token = loginAdmin
-      Delete(s"/categories/$uuid") ~> authorizeWithSecret(token) ~~> {
+      Delete(s"/categories/$uuid") ~> authorizeWithSecret(loginAdmin) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
