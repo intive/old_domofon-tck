@@ -21,17 +21,19 @@ trait DomofonMarshalling extends DefaultJsonProtocol {
     }
   })
 
-  implicit val uuidJsonFormat = lift(new JsonReader[UUID] {
+  implicit val uuidJsonFormat = new JsonFormat[UUID] {
     override def read(json: JsValue): UUID = (json: @unchecked) match {
       case JsString(s) => UUID.fromString(s)
     }
-  })
+
+    override def write(obj: UUID): JsValue = JsString(obj.toString)
+  }
 
   implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =
     PredefinedFromEntityUnmarshallers.stringUnmarshaller.map(UUID.fromString(_))
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
-  implicit val contactRequestFormat = jsonFormat7(PostContact.apply)
+  implicit val contactRequestFormat = jsonFormat8(PostContact.apply)
   implicit val contactResponseFormat = jsonFormat10(GetContact.apply)
   implicit val categoryRequestFormat = jsonFormat4(PostCategory.apply)
   implicit val categoryResponseFormat = jsonFormat5(GetCategory.apply)

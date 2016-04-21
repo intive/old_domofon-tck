@@ -50,9 +50,9 @@ trait PostCategoryTest extends BaseTckTest {
 
     val requiredFields = Set("name", "description", "isBatch", "message")
     for (field <- requiredFields) {
-      val cr = categoryRequest()
-      val json = JsObject(cr.toJson.asJsObject.fields - field)
       it(s"Fails when required field '${field}' is missing as application/json") {
+        val cr = categoryRequest()
+        val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post(categoriesEndpoint, json) ~> acceptJson ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
           responseAs[ValidationFieldsError].fields should contain(field)
@@ -71,9 +71,9 @@ trait PostCategoryTest extends BaseTckTest {
     }
 
     for (field <- requiredFields) {
-      val cr = categoryRequest()
-      val json = JsObject(cr.toJson.asJsObject.fields - field)
       it(s"Fails when required field '${field}' is missing as text/plain") {
+        val cr = categoryRequest()
+        val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post(categoriesEndpoint, json) ~> acceptPlain ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
           responseAs[String] should include(field)

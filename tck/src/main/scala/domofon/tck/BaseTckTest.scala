@@ -34,9 +34,9 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest {
   def randomSentence(words: Int = 5) = List.fill(words)(randomString(2 + Random.nextInt(5))).mkString(" ")
 
   def contactRequest(
-    name: String = randomSentence(2), company: String = randomSentence(2)
+    name: String = randomSentence(2), company: String = randomSentence(2), categoryId: UUID = postCategoryRequest().id
   ): PostContact = {
-    PostContact(name, company, "email@domain.pl", "+48123321123")
+    PostContact(name, categoryId, company, "email@domain.pl", "+48123321123")
   }
 
   def categoryRequest(

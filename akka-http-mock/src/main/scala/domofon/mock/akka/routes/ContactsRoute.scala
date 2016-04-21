@@ -64,7 +64,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
         post {
           entity(as[JsObject]) { json =>
             jsonAs[ContactRequest](json) { cr =>
-              ContactRequestValidator(cr) match {
+              ContactRequestValidator(categories.keySet)(cr) match {
                 case Valid(contact) =>
                   val id = UUID.randomUUID()
                   val secret = UUID.randomUUID()

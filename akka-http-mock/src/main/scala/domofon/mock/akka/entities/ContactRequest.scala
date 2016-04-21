@@ -1,10 +1,13 @@
 package domofon.mock.akka.entities
 
+import java.util.UUID
+
 case class ContactRequest(
   name: String,
-  company: Option[String] = None,
+  category: UUID,
   notifyEmail: String,
   phone: String,
+  company: Option[String] = None,
   adminEmail: Option[String] = None,
   fromDate: Option[java.time.LocalDate] = None,
   tillDate: Option[java.time.LocalDate] = None

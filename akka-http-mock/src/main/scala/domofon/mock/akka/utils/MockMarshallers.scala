@@ -30,13 +30,16 @@ trait MockMarshallers extends DefaultJsonProtocol {
     override def write(obj: LocalDateTime) = JsString(obj.toString)
   })
 
-  implicit val uuidJsonWriter = lift(new JsonWriter[UUID] {
-    override def write(obj: UUID) = JsString(obj.toString)
-  })
+  implicit val uuidJsonFormat = new JsonFormat[UUID] {
+    override def read(json: JsValue): UUID = (json: @unchecked) match {
+      case JsString(s) => UUID.fromString(s)
+    }
+    override def write(obj: UUID): JsValue = JsString(obj.toString)
+  }
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
   implicit val contactRequestFormat = new RootJsonFormat[ContactRequest] {
-    private[this] val autoFormat = jsonFormat7(ContactRequest.apply)
+    private[this] val autoFormat = jsonFormat8(ContactRequest.apply)
 
     override def write(obj: ContactRequest): JsValue = obj.toJson(autoFormat)
 
@@ -53,7 +56,7 @@ trait MockMarshallers extends DefaultJsonProtocol {
     }
   }
 
-  implicit val contactResponseFormat = jsonFormat13(ContactResponse.apply)
+  implicit val contactResponseFormat = jsonFormat14(ContactResponse.apply)
 
   implicit val categoryRequestFormat = new RootJsonFormat[CategoryRequest] {
     private[this] val autoFormat = jsonFormat4(CategoryRequest.apply)
