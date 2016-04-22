@@ -68,7 +68,8 @@ lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariform
   maintainer in Docker := "Lukasz Stefaniak <lustefaniak@gmail.com>",
   dockerRepository := Some("lustefaniak")
 ) ++ Seq(
-  buildInfoKeys := Seq[BuildInfoKey](organization, name, version, scalaVersion, licenses)
+  buildInfoKeys := Seq[BuildInfoKey](organization, name, version, scalaVersion, licenses),
+  buildInfoUsePackageAsPath := true
 )
 
 lazy val `tck` =
