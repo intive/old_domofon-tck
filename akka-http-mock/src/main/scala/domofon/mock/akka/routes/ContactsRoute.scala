@@ -150,17 +150,6 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
                 }
               }
             } ~
-            path("message") {
-              get {
-                complete(contact.message)
-              } ~
-                put {
-                  entity(as[String]) { msg =>
-                    contacts.update(contact.id, contact.copy(message = msg))
-                    complete(OperationSuccessful)
-                  }
-                }
-            } ~
             pathEndOrSingleSlash {
               get {
                 complete(contact.toJson(contactPublicResponseWriter))
