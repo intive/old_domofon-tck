@@ -6,7 +6,7 @@ import domofon.tck.{TckEnvCredentials, DomofonTck}
 import scala.util.Try
 
 object Runner extends App {
-  val runnerHeader = s"${BuildInfo.name} (${BuildInfo.version}) - Domofon API TCK tests runner"
+  val runnerHeader = s"tck-runner - Domofon API TCK tests runner"
   println(runnerHeader)
 
   if (args.isEmpty) {
