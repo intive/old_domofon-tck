@@ -17,6 +17,7 @@ script:
 - if [[ -n $(git status -s) ]]; then git status && echo 'You need to format your code!'  && exit 1; fi
 - sbt clean coverage compileAll test coverageReport || exit 1
 - sbt coverageAggregate
+- find . -name *coverage-* | grep -v -v "\\./target" | xargs rm -r
 
 jdk:
 - oraclejdk8
