@@ -13,7 +13,6 @@ case class ContactResponse(
   phone: Option[String],
   adminEmail: String,
   isImportant: Boolean,
-  message: String,
   fromDate: java.time.LocalDate,
   tillDate: Option[java.time.LocalDate],
   deputy: Option[Deputy],
@@ -33,7 +32,6 @@ case object ContactResponse {
       req.phone,
       req.adminEmail.getOrElse(req.notifyEmail),
       false,
-      "",
       req.fromDate.getOrElse(LocalDate.now()),
       req.tillDate,
       None
