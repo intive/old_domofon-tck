@@ -57,7 +57,7 @@ trait GetCategoriesTest extends BaseTckTest {
         status shouldBe StatusCodes.OK
         val categories = responseAs[List[GetCategory]]
         categories.filter(_.id === uuid) should have size (1)
-        val messages = categories.filter(_.id === uuid).flatMap(_.messages)
+        val messages = categories.filter(_.id === uuid).flatMap(_.messages.values)
         messages should contain(message)
       }
     }

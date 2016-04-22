@@ -6,7 +6,7 @@ case class CategoryResponse(
   id: UUID,
   name: String,
   description: String,
-  messages: List[String],
+  messages: Map[UUID, String],
   isIndividual: Boolean,
   nextNotificationAllowedAt: Option[java.time.LocalDateTime] = None
 )
@@ -17,7 +17,7 @@ object CategoryResponse {
       id,
       cr.name,
       cr.description,
-      List(cr.message),
+      Map(UUID.randomUUID() -> cr.message),
       cr.isIndividual
     )
   }

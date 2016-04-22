@@ -44,6 +44,7 @@ trait DomofonMarshalling extends DefaultJsonProtocol {
   implicit val sseUpdatedFormat = jsonFormat1(Updated.apply)
   implicit val isImportantFormat = jsonFormat1(IsImportant.apply)
   implicit val validationFieldsError = jsonFormat2(ValidationFieldsError.apply)
+  implicit val categoryMessageFormat = jsonFormat2(CategoryMessage.apply)
 
 }
 

@@ -6,7 +6,7 @@ case class GetCategory(
   id: UUID,
   name: String,
   description: String,
-  messages: List[String],
+  messages: Map[UUID, String],
   isIndividual: Boolean
 )
 

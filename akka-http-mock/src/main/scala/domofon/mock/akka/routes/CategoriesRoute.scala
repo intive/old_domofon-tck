@@ -92,6 +92,53 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
               }
             }
           } ~
+            pathPrefix("messages") {
+              pathEndOrSingleSlash {
+                post {
+                  authenticateAdminToken {
+                    entity(as[String]) { message =>
+                      if (message.isEmpty) complete(StatusCodes.UnprocessableEntity)
+                      else {
+                        val msgId = UUID.randomUUID()
+                        categories.update(category.id, category.copy(messages = category.messages.updated(msgId, message)))
+                        complete(msgId.toString)
+                      }
+                    }
+                  }
+                }
+              } ~ path(Segment) { uuidMaybe =>
+                delete {
+                  authenticateAdminToken {
+                    Try(UUID.fromString(uuidMaybe)) match {
+                      case Success(msgId) if category.messages.size > 1 =>
+                        categories.update(category.id, category.copy(messages = category.messages - msgId))
+                        complete(OperationSuccessful)
+                      case Success(msgId) if !category.messages.contains(msgId) =>
+                        complete(StatusCodes.NotFound)
+                      case _ => complete(StatusCodes.BadRequest)
+                    }
+                  }
+                } ~ put {
+                  authenticateAdminToken {
+                    entity(as[String]) { msg =>
+                      if (msg.isEmpty) complete(StatusCodes.UnprocessableEntity)
+                      else {
+                        Try(UUID.fromString(uuidMaybe)) match {
+                          case Success(msgId) =>
+                            categories.update(category.id, category.copy(messages = category.messages.updated(msgId, msg)))
+                            complete(OperationSuccessful)
+                          case Failure(_) =>
+                            complete(StatusCodes.BadRequest)
+                        }
+                      }
+                    }
+                  }
+                }
+              } ~ get {
+                val jsonMsgs = category.messages.map { case (id, msg) => JsObject("id" -> id.toJson, "message" -> JsString(msg)) }
+                complete(jsonMsgs)
+              }
+            } ~
             pathEndOrSingleSlash {
               get {
                 complete(category.toJson)
