@@ -1,6 +1,5 @@
 package domofon.tck.entities
 
-
 case class GetContact(
   id: EntityID,
   name: String,

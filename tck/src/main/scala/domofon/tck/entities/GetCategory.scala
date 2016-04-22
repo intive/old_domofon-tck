@@ -1,6 +1,5 @@
 package domofon.tck.entities
 
-
 case class GetCategory(
   id: EntityID,
   name: String,

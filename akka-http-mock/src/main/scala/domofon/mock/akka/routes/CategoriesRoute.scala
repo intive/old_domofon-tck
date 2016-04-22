@@ -1,7 +1,6 @@
 package domofon.mock.akka.routes
 
 import java.time.LocalDateTime
-import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
@@ -32,19 +31,14 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
 
   def sendNotifications(categoryResponse: CategoryResponse): Future[NotificationResult]
 
-  def categoriesRoute(categories: scala.collection.concurrent.TrieMap[UUID, CategoryResponse]): Route = {
+  def categoriesRoute(categories: scala.collection.concurrent.TrieMap[EntityID, CategoryResponse]): Route = {
 
     def takeCategoryFromPath: Directive1[CategoryResponse] = {
       pathPrefix(Segment).flatMap {
-        uuidMaybe =>
-          Try(UUID.fromString(uuidMaybe)) match {
-            case Success(uuid) =>
-              categories.get(uuid) match {
-                case None       => complete((StatusCodes.NotFound, "Category was not found"))
-                case Some(resp) => provide(resp)
-              }
-            case Failure(e) =>
-              reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
+        uuid =>
+          categories.get(uuid) match {
+            case None       => complete((StatusCodes.NotFound, "Category was not found"))
+            case Some(resp) => provide(resp)
           }
       }
     }
@@ -59,7 +53,7 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
               jsonAs[CategoryRequest](json) { cr =>
                 CategoryRequestValidator(cr) match {
                   case Valid(contact) =>
-                    val id = UUID.randomUUID()
+                    val id = EntityID.forCategory
                     categories.update(id, CategoryResponse.from(id, cr))
                     complete(CategoryCreated(id))
                   case Invalid(nel) =>
@@ -99,44 +93,37 @@ trait CategoriesRoute extends MockMarshallers with SprayJsonSupport with Auth {
                     entity(as[String]) { message =>
                       if (message.isEmpty) complete(StatusCodes.UnprocessableEntity)
                       else {
-                        val msgId = UUID.randomUUID()
+                        val msgId = EntityID.forMessage
                         categories.update(category.id, category.copy(messages = category.messages.updated(msgId, message)))
-                        complete(msgId.toString)
+                        complete(msgId)
                       }
                     }
                   }
                 }
-              } ~ path(Segment) { uuidMaybe =>
+              } ~ path(Segment) { msgId =>
                 delete {
                   authenticateAdminToken {
-                    Try(UUID.fromString(uuidMaybe)) match {
-                      case Success(msgId) if category.messages.size > 1 =>
-                        categories.update(category.id, category.copy(messages = category.messages - msgId))
-                        complete(OperationSuccessful)
-                      case Success(msgId) if !category.messages.contains(msgId) =>
-                        complete(StatusCodes.NotFound)
-                      case _ => complete(StatusCodes.BadRequest)
-                    }
+                    if (category.messages.contains(msgId) && category.messages.size > 1) {
+                      categories.update(category.id, category.copy(messages = category.messages - msgId))
+                      complete(OperationSuccessful)
+                    } else if (!category.messages.contains(msgId)) {
+                      complete(StatusCodes.NotFound)
+                    } else complete(StatusCodes.BadRequest)
                   }
                 } ~ put {
                   authenticateAdminToken {
                     entity(as[String]) { msg =>
                       if (msg.isEmpty) complete(StatusCodes.UnprocessableEntity)
                       else {
-                        Try(UUID.fromString(uuidMaybe)) match {
-                          case Success(msgId) =>
-                            categories.update(category.id, category.copy(messages = category.messages.updated(msgId, msg)))
-                            complete(OperationSuccessful)
-                          case Failure(_) =>
-                            complete(StatusCodes.BadRequest)
-                        }
+                        categories.update(category.id, category.copy(messages = category.messages.updated(msgId, msg)))
+                        complete(OperationSuccessful)
                       }
                     }
                   }
                 }
               } ~ get {
                 val jsonMsgs = category.messages.map { case (id, msg) => JsObject("id" -> id.toJson, "message" -> JsString(msg)) }
-                complete(jsonMsgs)
+                complete(jsonMsgs.toJson)
               }
             } ~
             pathEndOrSingleSlash {

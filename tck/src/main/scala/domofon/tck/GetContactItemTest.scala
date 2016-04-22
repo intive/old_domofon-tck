@@ -1,6 +1,5 @@
 package domofon.tck
 
-
 import domofon.tck.DomofonMarshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
@@ -35,7 +34,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Returned object is JSON object and could be decoded as Contact response") {
-      val uuid  = postContactRequest().id
+      val uuid = postContactRequest().id
 
       val request: HttpRequest = Get(s"/contacts/${uuid}") ~> acceptJson
 

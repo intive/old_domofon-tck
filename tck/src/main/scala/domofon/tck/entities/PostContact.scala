@@ -1,6 +1,5 @@
 package domofon.tck.entities
 
-
 case class PostContact(
   name: String,
   category: EntityID,

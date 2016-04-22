@@ -96,7 +96,6 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest with Adm
     headers.mkString("", "\n", "\n")
   }
 
-
   def authorizeWithSecret(secret: Token): RequestTransformer = {
     addHeader(Authorization(OAuth2BearerToken(secret)))
   }

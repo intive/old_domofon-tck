@@ -8,7 +8,7 @@ import akka.http.scaladsl.server._
 import akka.http.scaladsl.util.FastFuture
 import akka.stream.Materializer
 import de.heikoseeberger.akkasse.EventStreamMarshalling
-import domofon.mock.akka.entities.{CategoryResponse, ContactResponse, NotificationResult}
+import domofon.mock.akka.entities.{EntityID, CategoryResponse, ContactResponse, NotificationResult}
 import domofon.mock.akka.routes.{CategoriesRoute, ContactsRoute, SwaggerRoute}
 import domofon.mock.akka.utils._
 
@@ -32,8 +32,8 @@ trait MockServer extends Directives
 
   def domofonRoute: Route = Route.seal(routes)
 
-  private[this] lazy val contacts = collection.concurrent.TrieMap[UUID, ContactResponse]()
-  private[this] lazy val categories = collection.concurrent.TrieMap[UUID, CategoryResponse]()
+  private[this] lazy val contacts = collection.concurrent.TrieMap[EntityID, ContactResponse]()
+  private[this] lazy val categories = collection.concurrent.TrieMap[EntityID, CategoryResponse]()
 
   def notifyDelay: FiniteDuration = 1.minute
 

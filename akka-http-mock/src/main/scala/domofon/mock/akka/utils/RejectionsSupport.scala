@@ -7,14 +7,14 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Rejection, RejectionHandler}
 import MockMarshallers._
-import domofon.mock.akka.entities.{CategoryDoesNotExistError, CategoryIsIndividualError, MissingFieldsError, TooManyRequestsError}
+import domofon.mock.akka.entities._
 
 object RejectionsSupport {
 
   case class MissingRequiredFieldsRejection(message: String, fields: List[String]) extends Rejection
   case class TooManyRequestsRejection(message: String, nextTryAt: Option[LocalDateTime]) extends Rejection
   case object CategoryIsIndividualRejection extends Rejection
-  case class CategoryDoesNotExistRejection(category: UUID) extends Rejection
+  case class CategoryDoesNotExistRejection(category: EntityID) extends Rejection
 
   val rejectionHandler: RejectionHandler = RejectionHandler.newBuilder().handle {
     case MissingRequiredFieldsRejection(message, fields) =>

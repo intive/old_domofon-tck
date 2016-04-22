@@ -1,6 +1,5 @@
 package domofon.tck
 
-
 import akka.http.scaladsl.model.StatusCodes
 
 trait RemoveCategoryItemTest extends BaseTckTest {

@@ -5,18 +5,18 @@ import java.util.UUID
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.Credentials
-import domofon.mock.akka.entities.{LoginToken, ContactResponse}
+import domofon.mock.akka.entities.{EntityID, Secret, LoginToken, ContactResponse}
 
 trait Auth extends AdminCredentials {
 
   import domofon.mock.akka.utils.MockMarshallers._
 
-  @volatile private[this] var adminSession = UUID.randomUUID()
+  @volatile private[this] var adminSession: Secret = UUID.randomUUID().toString
 
-  def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[UUID] = {
+  def contactSecretAuthenticator(contactResponse: ContactResponse): Authenticator[EntityID] = {
     case p: Credentials.Provided =>
       val isSecret = p.verify(contactResponse.secret.toString)
-      val isAdmin = p.verify(adminSession.toString)
+      val isAdmin = p.verify(adminSession)
       if (isSecret || isAdmin) Some(contactResponse.id) else None
     case _ => None
   }
@@ -31,9 +31,9 @@ trait Auth extends AdminCredentials {
     }) { _ => r }
   }
 
-  def authenticateAdminUserPass: AuthenticatorPF[UUID] = {
+  def authenticateAdminUserPass: AuthenticatorPF[Secret] = {
     case p @ Credentials.Provided(login) if p.verify(adminPass) && adminLogin == login =>
-      adminSession = UUID.randomUUID()
+      adminSession = UUID.randomUUID().toString
       adminSession
   }
 

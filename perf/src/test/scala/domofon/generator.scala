@@ -16,7 +16,7 @@ trait Generators {
     _adminEmail <- Gen.some(email)
   } yield ContactRequest(
     name = _name,
-    category = _category,
+    category = _category.toString,
     notifyEmail = _notifyEmail,
     phone = _phone,
     company = _company,
@@ -46,7 +46,7 @@ trait Generators {
   private def company = arbitraryCompany
   private def phone = arbitraryPhone
   private def optionalPhone = Gen.option(arbitraryPhone)
-  private def category = arbitraryUuid
+  private def category = Gen.choose(1, 4)
 
   private def sample[T](t: Gen[T]): T = t.sample match {
     case Some(x) => x
@@ -66,7 +66,5 @@ trait Generators {
     x <- Gen.choose(6, 9)
     y <- Gen.listOfN(8, Gen.choose(1, 9))
   } yield s"+48$x${y.mkString}"
-
-  private def arbitraryUuid = Gen.uuid
 
 }

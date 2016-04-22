@@ -39,37 +39,30 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
   def sendNotifications(contactResponse: ContactResponse): Future[NotificationResult]
 
   def contactsRoute(
-    contacts: scala.collection.concurrent.TrieMap[UUID, ContactResponse],
-    categories: scala.collection.concurrent.TrieMap[UUID, CategoryResponse]
+    contacts: scala.collection.concurrent.TrieMap[EntityID, ContactResponse],
+    categories: scala.collection.concurrent.TrieMap[EntityID, CategoryResponse]
   ): Route = {
 
     def takeContactFromPath: Directive1[ContactResponse] = {
-      pathPrefix(Segment).flatMap { uuidMaybe =>
-        Try(UUID.fromString(uuidMaybe)) match {
-          case Success(uuid) =>
-            contacts.get(uuid) match {
-              case None       => complete((StatusCodes.NotFound, "Contact was not found"))
-              case Some(resp) => provide(resp)
-            }
-          case Failure(e) =>
-            reject(ValidationRejection("ID must be valid UUID identifier, eg. " + UUID.randomUUID()))
+      pathPrefix(Segment).flatMap { id =>
+        contacts.get(id) match {
+          case None       => complete((StatusCodes.NotFound, "Contact was not found"))
+          case Some(resp) => provide(resp)
         }
       }
     }
 
     path("contacts") {
       get {
-        parameter("category".as[UUID].?) { categoryIdMaybe =>
-          categoryIdMaybe match {
-            case None =>
-              complete(contacts.values.map(_.toJson(contactPublicResponseWriter)))
-            case Some(categoryId) =>
-              if (categories.contains(categoryId)) {
-                complete(contacts.values.filter(_.category == categoryId).map(_.toJson(contactPublicResponseWriter)))
-              } else {
-                reject(CategoryDoesNotExistRejection(categoryId))
-              }
-          }
+        parameter("category".as[EntityID].?) {
+          case None =>
+            complete(contacts.values.map(_.toJson(contactPublicResponseWriter)))
+          case Some(categoryId) =>
+            if (categories.contains(categoryId)) {
+              complete(contacts.values.filter(_.category == categoryId).map(_.toJson(contactPublicResponseWriter)))
+            } else {
+              reject(CategoryDoesNotExistRejection(categoryId))
+            }
         }
       } ~
         post {
@@ -77,8 +70,8 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
             jsonAs[ContactRequest](json) { cr =>
               ContactRequestValidator(categories.keySet)(cr) match {
                 case Valid(contact) =>
-                  val id = UUID.randomUUID()
-                  val secret = UUID.randomUUID()
+                  val id = EntityID.forContact
+                  val secret = UUID.randomUUID().toString
                   contacts.update(id, ContactResponse.from(id, secret, cr))
                   broadcastContactsUpdated()
                   complete(ContactCreated(id, secret))
