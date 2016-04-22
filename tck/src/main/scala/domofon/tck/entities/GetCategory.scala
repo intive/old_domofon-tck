@@ -1,12 +1,11 @@
 package domofon.tck.entities
 
-import java.util.UUID
 
 case class GetCategory(
-  id: UUID,
+  id: EntityID,
   name: String,
   description: String,
-  messages: Map[UUID, String],
+  messages: Map[EntityID, String],
   isIndividual: Boolean
 )
 

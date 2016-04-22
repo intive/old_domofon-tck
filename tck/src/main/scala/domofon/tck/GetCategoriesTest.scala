@@ -1,6 +1,5 @@
 package domofon.tck
 
-import java.util.UUID
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
@@ -40,7 +39,7 @@ trait GetCategoriesTest extends BaseTckTest {
     }
 
     it("Created Category could be listed") {
-      val uuid: UUID = postCategoryRequest().id
+      val uuid = postCategoryRequest().id
 
       Get(categoriesEndpoint) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -51,7 +50,7 @@ trait GetCategoriesTest extends BaseTckTest {
 
     it("Created Category has notification message") {
       val message = "Some notification message"
-      val uuid: UUID = postCategoryRequest(categoryRequest(message = message)).id
+      val uuid = postCategoryRequest(categoryRequest(message = message)).id
 
       Get(categoriesEndpoint) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK

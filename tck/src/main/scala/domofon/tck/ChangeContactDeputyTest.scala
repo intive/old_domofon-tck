@@ -1,17 +1,15 @@
 package domofon.tck
 
-import java.util.UUID
-
 import domofon.tck.DomofonMarshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{Authorization, OAuth2BearerToken}
-import domofon.tck.entities.{EntityCreatedWithSecret, Deputy}
+import domofon.tck.entities.{Token, EntityID, EntityCreatedWithSecret, Deputy}
 import spray.json._
 
 trait ChangeContactDeputyTest extends BaseTckTest {
 
-  private[this] def deputyUrl(contactId: UUID): String = {
+  private[this] def deputyUrl(contactId: EntityID): String = {
     s"/contacts/${contactId}/deputy"
   }
 
@@ -19,7 +17,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     "Jan Kowalski", "jan.kowalski@company.pl", "+48123321123"
   )
 
-  private[this] def putContactDeputy(contactId: UUID, secret: UUID, deputy: Deputy = contactDeputy()) = {
+  private[this] def putContactDeputy(contactId: EntityID, secret: Token, deputy: Deputy = contactDeputy()) = {
     Put(deputyUrl(contactId), deputy.toJson) ~> acceptJson ~> authorizeWithSecret(secret) ~> domofonRoute
   }
 
@@ -32,7 +30,7 @@ trait ChangeContactDeputyTest extends BaseTckTest {
     }
 
     it("By default Contact has no deputy") {
-      val uuid: UUID = postContactRequest().id
+      val uuid = postContactRequest().id
 
       Get(deputyUrl(uuid)) ~> acceptJson ~~> {
         status shouldBe StatusCodes.NotFound

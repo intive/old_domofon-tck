@@ -1,10 +1,9 @@
 package domofon.tck.entities
 
-import java.util.UUID
 
 case class PostContact(
   name: String,
-  category: UUID,
+  category: EntityID,
   notifyEmail: String,
   company: Option[String] = None,
   phone: Option[String] = None,

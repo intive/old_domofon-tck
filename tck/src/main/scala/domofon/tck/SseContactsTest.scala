@@ -1,7 +1,5 @@
 package domofon.tck
 
-import java.util.UUID
-
 import domofon.tck.DomofonMarshalling._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl._
@@ -32,7 +30,7 @@ trait SseContactsTest extends BaseTckTest with ScalaFutures {
         sse =>
           val probe = sse.runWith(TestSink.probe)
           probe.ensureSubscription()
-          val uuid: UUID = postContactRequest().id
+          val uuid = postContactRequest().id
           val messages = probe.receiveWhile[ServerSentEvent](5.seconds) {
             case OnNext(r: ServerSentEvent) if r != ServerSentEvent.heartbeat => r
           }
