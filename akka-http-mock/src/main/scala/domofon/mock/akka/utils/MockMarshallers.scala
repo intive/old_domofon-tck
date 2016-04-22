@@ -155,6 +155,11 @@ trait MockMarshallers extends DefaultJsonProtocol {
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(r => JsObject(("status", JsString(r.status))).prettyPrint)
   )
 
+  implicit val isImportantMarshaller: ToEntityMarshaller[IsImportant] = Marshaller.oneOf(
+    Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(r => r.isImportant.toString),
+    Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(r => JsObject(("isImportant", JsBoolean(r.isImportant))).prettyPrint)
+  )
+
   implicit val validationErrorFormat = jsonFormat2(ValidationError.apply)
 
 }
