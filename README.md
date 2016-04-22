@@ -36,7 +36,7 @@ All tests use `ScalatestRouteTest` from akka-http testkit. To get started add SB
   ```
   resolvers += Resolver.bintrayRepo("lustefaniak", "domofon")
   
-  libraryDependencies += "com.blstream.domofon" %% "tck" %% "0.4.0" % "test"
+  libraryDependencies += "com.blstream.domofon" %% "tck" % "0.4.0" % "test"
   ```
   
 **TIP**: Usually it is best to use latest version of the TCK: [ ![Download](https://api.bintray.com/packages/lustefaniak/domofon/tck/images/download.svg) ](https://bintray.com/lustefaniak/domofon/tck/_latestVersion)
