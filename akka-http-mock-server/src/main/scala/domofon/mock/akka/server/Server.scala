@@ -17,7 +17,7 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 object Server extends App {
-  val serverHeader = s"${BuildInfo.name} (${BuildInfo.version}) - Domofon API Mock Server using akka-http"
+  val serverHeader = s"akka-http-mock-server - Domofon API Mock Server using akka-http"
 
   case class Config(listen: Uri = Uri("http://0.0.0.0:8080/"))
 

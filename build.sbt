@@ -67,14 +67,12 @@ lazy val commonSettings: Seq[sbt.Setting[_]] = SbtScalariform.defaultScalariform
   dockerUpdateLatest := true,
   maintainer in Docker := "Lukasz Stefaniak <lustefaniak@gmail.com>",
   dockerRepository := Some("lustefaniak")
-) ++ Seq(
-  buildInfoKeys := Seq[BuildInfoKey](organization, name, version, scalaVersion, licenses)
 )
 
 lazy val `tck` =
   (project in file("tck"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, BuildInfoPlugin)
+    .enablePlugins(GitVersioning)
     .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq(
@@ -87,27 +85,23 @@ lazy val `tck` =
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion,
         "org.scalacheck" %% "scalacheck" % scalacheckVersion
-      ),
-      buildInfoPackage := "domofon.tck",
-      buildInfoOptions += BuildInfoOption.BuildTime
+      )
     )
 
 lazy val `tck-runner` =
   (project in file("tck-runner"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, BuildInfoPlugin, RevolverPlugin, JavaAppPackaging)
+    .enablePlugins(GitVersioning, RevolverPlugin, JavaAppPackaging)
     .settings(commonSettings)
     .settings(
-      packageName in Docker := "domofon-tck-runner",
-      buildInfoPackage := "domofon.tck.runner",
-      buildInfoOptions += BuildInfoOption.BuildTime
+      packageName in Docker := "domofon-tck-runner"
     )
     .dependsOn(`tck`)
 
 lazy val `akka-http-mock` =
   (project in file("akka-http-mock"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, BuildInfoPlugin)
+    .enablePlugins(GitVersioning)
     .settings(commonSettings)
     .settings(
       resolvers += Resolver.bintrayRepo("hmrc", "releases"),
@@ -120,22 +114,18 @@ lazy val `akka-http-mock` =
         ),
         libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % scalatestVersion % "test"
-      ),
-      buildInfoPackage := "domofon.mock.akka",
-      buildInfoOptions += BuildInfoOption.BuildTime
+      )
     )
     .dependsOn(`tck` % "test")
 
 lazy val `akka-http-mock-server` =
   (project in file("akka-http-mock-server"))
     .disablePlugins(SbtScalariform)
-    .enablePlugins(GitVersioning, BuildInfoPlugin, RevolverPlugin, JavaAppPackaging)
+    .enablePlugins(GitVersioning, RevolverPlugin, JavaAppPackaging)
     .settings(commonSettings)
     .settings(
       libraryDependencies += "com.github.scopt" %% "scopt" % "3.4.0",
-      libraryDependencies += "ch.megard" %% "akka-http-cors" % "0.1.1",
-      buildInfoPackage := "domofon.mock.akka.server",
-      buildInfoOptions += BuildInfoOption.BuildTime
+      libraryDependencies += "ch.megard" %% "akka-http-cors" % "0.1.1"
     )
     .settings(
       dockerExposedPorts := List(8080),
