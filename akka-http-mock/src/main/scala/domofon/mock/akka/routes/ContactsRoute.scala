@@ -121,7 +121,7 @@ trait ContactsRoute extends MockMarshallers with SprayJsonSupport {
           } ~
             path("important") {
               get {
-                complete(IsImportant(contact.isImportant).toJson)
+                complete(IsImportant(contact.isImportant))
               } ~
                 put {
                   entity(as[JsObject]) { json =>

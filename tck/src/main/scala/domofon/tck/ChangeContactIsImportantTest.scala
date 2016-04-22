@@ -41,6 +41,15 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
       }
     }
 
+    it("Can respond with text/plain returning true or false") {
+      val EntityCreatedWithSecret(uuid, _) = postContactRequest()
+
+      Get(isImportantUrl(uuid)) ~> acceptPlain ~~> {
+        status shouldBe StatusCodes.OK
+        responseAs[String] shouldBe "false"
+      }
+    }
+
   }
 
   describe("PUT /contacts/{id}/important") {
@@ -99,14 +108,6 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
         responseAs[GetContact].isImportant shouldBe true
       }
 
-    }
-
-    it("Can respond only with application/json and fails with other response types on PUT /contacts/{id}/important when exists") {
-      val EntityCreatedWithSecret(uuid, _) = postContactRequest()
-
-      Get(isImportantUrl(uuid)) ~> acceptPlain ~~> {
-        status shouldBe StatusCodes.NotAcceptable
-      }
     }
 
     it("Discards request if 'isImportant' parameter is missing") {
