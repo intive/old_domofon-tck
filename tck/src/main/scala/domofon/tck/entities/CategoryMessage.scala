@@ -1,5 +1,3 @@
 package domofon.tck.entities
 
-import java.util.UUID
-
-case class CategoryMessage(id: UUID, message: String)
+case class CategoryMessage(id: EntityID, message: String)

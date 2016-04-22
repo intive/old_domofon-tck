@@ -2,7 +2,6 @@ package domofon.mock.akka.utils
 
 import java.time.format.DateTimeParseException
 import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID
 
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.MediaTypes
@@ -34,13 +33,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
   implicit val localDateTimeJsonWriter = lift(new JsonWriter[LocalDateTime] {
     override def write(obj: LocalDateTime) = JsString(obj.toString)
   })
-
-  implicit val uuidJsonFormat = new JsonFormat[UUID] {
-    override def read(json: JsValue): UUID = (json: @unchecked) match {
-      case JsString(s) => UUID.fromString(s)
-    }
-    override def write(obj: UUID): JsValue = JsString(obj.toString)
-  }
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
   implicit val contactRequestFormat = new RootJsonFormat[ContactRequest] {
@@ -95,13 +87,6 @@ trait MockMarshallers extends DefaultJsonProtocol {
     }
   }
 
-  implicit val uuidFromString: FromStringUnmarshaller[UUID] = new Unmarshaller[String, UUID] {
-    override def apply(value: String)(
-      implicit
-      ec: ExecutionContext, materializer: Materializer
-    ): Future[UUID] = FastFuture.apply(Try(UUID.fromString(value)))
-  }
-
   implicit val missingFieldsErrorMarshaller: ToEntityMarshaller[MissingFieldsError] = Marshaller.oneOf(
     Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => e.message),
     Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e => e.toJson.prettyPrint)
@@ -121,7 +106,7 @@ trait MockMarshallers extends DefaultJsonProtocol {
   }
 
   implicit val categoryDoesNotExistErrorMarshaller: ToEntityMarshaller[CategoryDoesNotExistError] = {
-    def msg(cid: UUID) = s"Category ${cid} does not exist"
+    def msg(cid: EntityID) = s"Category ${cid} does not exist"
     Marshaller.oneOf(
       Marshaller.StringMarshaller.wrap(MediaTypes.`text/plain`)(e => msg(e.categoryId)),
       Marshaller.StringMarshaller.wrap(MediaTypes.`application/json`)(e =>

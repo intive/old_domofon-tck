@@ -1,7 +1,5 @@
 package domofon.tck
 
-import java.util.UUID
-
 import domofon.tck.DomofonMarshalling._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
@@ -18,16 +16,8 @@ trait GetContactItemTest extends BaseTckTest {
       }
     }
 
-    it("Requesting ID not in UUID format fails") {
-      val notUuid = "this-is-not-uuid"
-
-      Get(s"/contacts/${notUuid}") ~~> {
-        status shouldBe StatusCodes.BadRequest
-      }
-    }
-
     it("Created Contact could be retrieved") {
-      val uuid: UUID = postContactRequest().id
+      val uuid = postContactRequest().id
 
       Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -35,7 +25,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Returned object is JSON object") {
-      val uuid: UUID = postContactRequest().id
+      val uuid = postContactRequest().id
 
       Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -44,7 +34,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Returned object is JSON object and could be decoded as Contact response") {
-      val uuid: UUID = postContactRequest().id
+      val uuid = postContactRequest().id
 
       val request: HttpRequest = Get(s"/contacts/${uuid}") ~> acceptJson
 
@@ -56,7 +46,7 @@ trait GetContactItemTest extends BaseTckTest {
 
     it("When contact was posted without adminEmail, notifyEmail is used instead") {
       val notifyEmail = "some@domain.pl"
-      val uuid: UUID = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None)).id
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = None)).id
 
       Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
@@ -67,7 +57,7 @@ trait GetContactItemTest extends BaseTckTest {
     it("When contact was posted with adminEmail, it is available in GET") {
       val notifyEmail = "some@domain.pl"
       val adminEmail = "admin@domain.pl"
-      val uuid: UUID = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail))).id
+      val uuid = postContactRequest(contactRequest().copy(notifyEmail = notifyEmail, adminEmail = Some(adminEmail))).id
 
       Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK
@@ -76,7 +66,7 @@ trait GetContactItemTest extends BaseTckTest {
     }
 
     it("Doesn't contain message as it might be sensitive information") {
-      val uuid: UUID = postContactRequest().id
+      val uuid = postContactRequest().id
 
       Get(s"/contacts/${uuid}") ~~> {
         status shouldBe StatusCodes.OK

@@ -1,7 +1,5 @@
 package domofon.mock.akka.utils
 
-import java.util.UUID
-
 import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.data.Validated._
 import cats.syntax.cartesian._
@@ -10,7 +8,7 @@ import cats.SemigroupK
 import cats.Functor
 import cats.data.Validated.{Invalid, Valid}
 import cats.syntax.apply
-import domofon.mock.akka.entities.ContactRequest
+import domofon.mock.akka.entities.{EntityID, ContactRequest}
 import uk.gov.hmrc.emailaddress.EmailAddress
 
 import scala.util.{Failure, Success, Try}
@@ -18,7 +16,7 @@ import scala.util.{Failure, Success, Try}
 object ContactRequestValidator {
   import Validators._
 
-  def apply(categoryIds: scala.collection.Set[UUID])(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
+  def apply(categoryIds: scala.collection.Set[EntityID])(cr: ContactRequest): ValidatedNel[Error, ContactRequest] = {
     (field("email")(validEmail)(cr.notifyEmail) |@|
       field("name")(nonEmptyString)(cr.name) |@|
       field("category")(existsElement(categoryIds, "category"))(cr.category) |@|

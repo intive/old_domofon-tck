@@ -1,9 +1,7 @@
 package domofon.tck.entities
 
-import java.util.UUID
-
 case class GetContact(
-  id: UUID,
+  id: EntityID,
   name: String,
   notifyEmail: String,
   adminEmail: String,

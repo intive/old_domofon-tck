@@ -1,12 +1,11 @@
 package domofon.tck
 
 import java.time.LocalDate
-import java.util.UUID
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
-import domofon.tck.entities.{EntityCreatedWithSecret, EntityCreated, ValidationFieldsError}
+import domofon.tck.entities._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import spray.json._
 
@@ -72,38 +71,38 @@ trait PostContactTest extends BaseTckTest {
 
     }
 
-    it("Rejects Contact with wrong Category UUID as text/plain") {
+    it("Rejects Contact with wrong Category ID as text/plain") {
       Post("/contacts", contactRequest(category = nonExistentUuid).toJson) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
       }
     }
 
-    it("Rejects Contact with wrong Category UUID as application/json") {
+    it("Rejects Contact with wrong Category ID as application/json") {
       Post("/contacts", contactRequest(category = nonExistentUuid).toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.UnprocessableEntity
       }
     }
 
-    it("Accepts proper Contact entity, returns text/plain UUID") {
+    it("Accepts proper Contact entity, returns text/plain entity id") {
       Post("/contacts", contactRequest().toJson) ~> acceptPlain ~~> {
         status shouldBe StatusCodes.OK
-        responseAs[UUID] shouldBe a[UUID]
+        responseAs[String] should not be 'empty
       }
     }
 
-    it("Accepts proper Contact entity, returns application/json with UUID") {
+    it("Accepts proper Contact entity, returns application/json with entity id") {
       Post("/contacts", contactRequest().toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
-        responseAs[EntityCreated].id shouldBe a[UUID]
+        responseAs[EntityCreated].id shouldBe an[EntityID]
       }
     }
 
-    it("Accepts proper Contact entity, returns application/json with UUID and secret") {
+    it("Accepts proper Contact entity, returns application/json with entity id and secret") {
       Post("/contacts", contactRequest().toJson) ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         val created = responseAs[EntityCreatedWithSecret]
-        created.id shouldBe a[UUID]
-        created.secret shouldBe a[UUID]
+        created.id shouldBe a[EntityID]
+        created.secret shouldBe a[Token]
       }
     }
 

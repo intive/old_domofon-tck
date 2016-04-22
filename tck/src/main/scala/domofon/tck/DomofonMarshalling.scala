@@ -1,7 +1,6 @@
 package domofon.tck
 
 import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID
 
 import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, PredefinedFromEntityUnmarshallers}
 import domofon.tck.entities._
@@ -20,17 +19,6 @@ trait DomofonMarshalling extends DefaultJsonProtocol {
       case JsString(s) => LocalDateTime.parse(s)
     }
   })
-
-  implicit val uuidJsonFormat = new JsonFormat[UUID] {
-    override def read(json: JsValue): UUID = (json: @unchecked) match {
-      case JsString(s) => UUID.fromString(s)
-    }
-
-    override def write(obj: UUID): JsValue = JsString(obj.toString)
-  }
-
-  implicit val rawUUIDEntityUnmarshaller: FromEntityUnmarshaller[UUID] =
-    PredefinedFromEntityUnmarshallers.stringUnmarshaller.map(UUID.fromString(_))
 
   implicit val deputyFormat = jsonFormat4(Deputy.apply)
   implicit val contactRequestFormat = jsonFormat8(PostContact.apply)

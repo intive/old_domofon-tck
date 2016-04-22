@@ -1,7 +1,5 @@
 package domofon.tck
 
-import java.util.UUID
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
@@ -37,7 +35,7 @@ trait GetContactsTest extends BaseTckTest {
     }
 
     it("Created Contact could be listed") {
-      val uuid: UUID = postContactRequest().id
+      val uuid = postContactRequest().id
 
       Get(s"/contacts") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
@@ -47,8 +45,8 @@ trait GetContactsTest extends BaseTckTest {
     }
 
     it("Contacts from different categories are filtered out") {
-      val categoryId: UUID = postCategoryRequest().id
-      val otherContactId: UUID = postContactRequest().id
+      val categoryId = postCategoryRequest().id
+      val otherContactId = postContactRequest().id
       Get(s"/contacts?category=${categoryId}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         val contacts = responseAs[List[GetContact]]
@@ -57,8 +55,8 @@ trait GetContactsTest extends BaseTckTest {
     }
 
     it("Is possible to filter contacts by category") {
-      val categoryId: UUID = postCategoryRequest().id
-      val sameCategoryId: UUID = postContactRequest(contactRequest(category = categoryId)).id
+      val categoryId = postCategoryRequest().id
+      val sameCategoryId = postContactRequest(contactRequest(category = categoryId)).id
       Get(s"/contacts?category=${categoryId}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         val contacts = responseAs[List[GetContact]]
@@ -67,7 +65,7 @@ trait GetContactsTest extends BaseTckTest {
     }
 
     it("Filtering by non existent category is BadRequest") {
-      val categoryId: UUID = nonExistentUuid
+      val categoryId = nonExistentUuid
       Get(s"/contacts?category=${categoryId}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.BadRequest
       }

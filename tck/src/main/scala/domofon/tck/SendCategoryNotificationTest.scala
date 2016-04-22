@@ -1,17 +1,15 @@
 package domofon.tck
 
-import java.util.UUID
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes
 import domofon.tck.DomofonMarshalling._
-import domofon.tck.entities.NotificationRetry
+import domofon.tck.entities.{EntityID, NotificationRetry}
 import spray.json._
 import akka.http.scaladsl.model.StatusCodes
-import domofon.tck.entities.NotificationRetry
 
 trait SendCategoryNotificationTest extends BaseTckTest {
 
-  private[this] def notifyUrl(categoryId: UUID): String = {
+  private[this] def notifyUrl(categoryId: EntityID): String = {
     s"/categories/${categoryId}/notify"
   }
 
@@ -23,21 +21,21 @@ trait SendCategoryNotificationTest extends BaseTckTest {
     }
 
     it("It sends notification if it exists and isIndividual = false") {
-      val uuid: UUID = postCategoryRequest().id
+      val uuid = postCategoryRequest().id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
     }
 
     it("It fails with BadRequest when it exists and is not isBatch") {
-      val uuid: UUID = postCategoryRequest(categoryRequest(isIndividual = true)).id
+      val uuid = postCategoryRequest(categoryRequest(isIndividual = true)).id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.BadRequest
       }
     }
 
     it("It discards notifications happening too often") {
-      val uuid: UUID = postCategoryRequest().id
+      val uuid = postCategoryRequest().id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }
@@ -48,7 +46,7 @@ trait SendCategoryNotificationTest extends BaseTckTest {
     }
 
     it("It tells when it is possible to retry sending notification as application/json") {
-      val uuid: UUID = postCategoryRequest().id
+      val uuid = postCategoryRequest().id
       Post(notifyUrl(uuid)) ~~> {
         status shouldBe StatusCodes.OK
       }

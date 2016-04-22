@@ -2,6 +2,7 @@ package domofon.tck
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.headers.{BasicHttpCredentials, OAuth2BearerToken}
+import domofon.tck.entities.Token
 
 trait AdminLoginTest extends BaseTckTest with AdminLogin {
 
@@ -26,13 +27,11 @@ trait AdminLoginTest extends BaseTckTest with AdminLogin {
 }
 
 trait AdminLogin extends AdminCredentials { self: BaseTckTest =>
-  type AdminToken = String
-
-  def loginAdmin: AdminToken = {
+  def loginAdmin: Token = {
     var adminToken = nonExistentUuid.toString
     Get("/login") ~> addCredentials(BasicHttpCredentials(tckAdminLogin, tckAdminPass)) ~~> {
       status should equal(StatusCodes.OK)
-      adminToken = responseAs[AdminToken]
+      adminToken = responseAs[Token]
     }
     adminToken
   }

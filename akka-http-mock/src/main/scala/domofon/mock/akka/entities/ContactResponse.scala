@@ -1,13 +1,12 @@
 package domofon.mock.akka.entities
 
 import java.time.LocalDate
-import java.util.UUID
 
 case class ContactResponse(
-  id: UUID,
-  secret: UUID,
+  id: EntityID,
+  secret: EntityID,
   name: String,
-  category: UUID,
+  category: EntityID,
   company: Option[String],
   notifyEmail: String,
   phone: Option[String],
@@ -21,7 +20,7 @@ case class ContactResponse(
 
 case object ContactResponse {
 
-  def from(id: UUID, secret: UUID, req: ContactRequest): ContactResponse = {
+  def from(id: EntityID, secret: Secret, req: ContactRequest): ContactResponse = {
     ContactResponse(
       id,
       secret,
