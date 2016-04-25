@@ -67,7 +67,7 @@ trait PostContactTest extends BaseTckTest {
 
     }
 
-    it("Validates if both dates are set (fromDate <= tillDate) or none ") {
+    it("Rejects when only one date is set or they don't respect relation (fromDate <= tillDate)") {
       import DomofonMarshalling._
 
       val validContactRequest = contactRequest().toJson.asJsObject
@@ -82,6 +82,25 @@ trait PostContactTest extends BaseTckTest {
         val invalidContactRequest = JsObject(validContactRequest.fields ++ Map("fromDate" -> from, "tillDate" -> till))
         Post("/contacts", invalidContactRequest.toJson) ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
+        }
+      }
+
+    }
+
+    it("Validates it works for no dates, or when dates respect (fromDate <= tillDate)") {
+      import DomofonMarshalling._
+
+      val values = Seq[(Option[LocalDate], Option[LocalDate])](
+        (None, None),
+        (Some(LocalDate.now.plusDays(2)), Some(LocalDate.now.plusDays(2))),
+        (Some(LocalDate.now.plusDays(2)), Some(LocalDate.now.plusDays(3)))
+      )
+
+      val dateFields = Table(("fromDate", "tillDate"), values: _*)
+      forAll(dateFields) { (from, till) =>
+        val req = contactRequest(fromDate = from, tillDate = till)
+        Post("/contacts", req.toJson) ~~> {
+          status shouldBe StatusCodes.OK
         }
       }
 
