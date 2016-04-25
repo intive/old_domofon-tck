@@ -27,7 +27,7 @@ trait PostCategoryTest extends BaseTckTest {
 
     it("Discards empty json object") {
       Post(categoriesEndpoint, JsObject()) ~> authorizeWithSecret(loginAdmin) ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
       }
     }
 
@@ -51,7 +51,7 @@ trait PostCategoryTest extends BaseTckTest {
         val cr = categoryRequest()
         val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptJson ~~> {
-          status shouldBe StatusCodes.UnprocessableEntity
+          status shouldBe StatusCodes.BadRequest
           responseAs[ValidationFieldsError].fields should contain(field)
         }
       }
@@ -61,7 +61,7 @@ trait PostCategoryTest extends BaseTckTest {
       val cr = categoryRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
       Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptJson ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
         val r = requiredFields -- responseAs[ValidationFieldsError].fields
         r shouldBe empty
       }
@@ -72,7 +72,7 @@ trait PostCategoryTest extends BaseTckTest {
         val cr = categoryRequest()
         val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptPlain ~~> {
-          status shouldBe StatusCodes.UnprocessableEntity
+          status shouldBe StatusCodes.BadRequest
           responseAs[String] should include(field)
         }
       }
@@ -82,7 +82,7 @@ trait PostCategoryTest extends BaseTckTest {
       val cr = categoryRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
       Post(categoriesEndpoint, json) ~> authorizeWithSecret(loginAdmin) ~> acceptPlain ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
         val r = responseAs[String]
         requiredFields.foreach {
           field =>
@@ -94,11 +94,26 @@ trait PostCategoryTest extends BaseTckTest {
     it("Discards json with illegal string values") {
       val validCategoryRequest = categoryRequest().toJson.asJsObject
       val stringFields = Seq("name", "description", "message")
-      val illegalStringValues = Seq(JsNumber(42), JsString(""), JsBoolean(false), JsObject.empty)
+      val illegalStringValues = Seq(JsNumber(42), JsBoolean(false), JsObject.empty)
       val cartesianProduct = for {
         field <- stringFields
         value <- illegalStringValues
       } yield (field, value)
+      val invalidParameters = Table(("field", "value"), cartesianProduct: _*)
+      forAll(invalidParameters) { (field, value) =>
+        val invalidContactRequest = JsObject(validCategoryRequest.fields.updated(field, value))
+        Post("/categories", invalidContactRequest.toJson) ~> authorizeWithSecret(loginAdmin) ~~> {
+          status shouldBe StatusCodes.BadRequest
+        }
+      }
+    }
+
+    it("Discards json with empty string values") {
+      val validCategoryRequest = categoryRequest().toJson.asJsObject
+      val stringFields = Seq("name", "description", "message")
+      val cartesianProduct = for {
+        field <- stringFields
+      } yield (field, JsString(""))
       val invalidParameters = Table(("field", "value"), cartesianProduct: _*)
       forAll(invalidParameters) { (field, value) =>
         val invalidContactRequest = JsObject(validCategoryRequest.fields.updated(field, value))

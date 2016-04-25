@@ -36,8 +36,6 @@ trait GetContactItemTest extends BaseTckTest {
     it("Returned object is JSON object and could be decoded as Contact response") {
       val uuid = postContactRequest().id
 
-      val request: HttpRequest = Get(s"/contacts/${uuid}") ~> acceptJson
-
       Get(s"/contacts/${uuid}") ~> acceptJson ~~> {
         status shouldBe StatusCodes.OK
         responseAs[GetContact] shouldBe a[GetContact]
