@@ -112,7 +112,7 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
       val EntityCreatedWithSecret(uuid, secret) = postContactRequest()
 
       Put(isImportantUrl(uuid), JsObject.empty.toJson) ~> authorizeWithSecret(secret) ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
       }
     }
 
@@ -125,12 +125,14 @@ trait ChangeContactIsImportantTest extends BaseTckTest {
         JsString("true"),
         JsString("false"),
         JsString(""),
-        JsNumber(0)
+        JsString("yes"),
+        JsNumber(0),
+        JsNumber(1)
       )
       forAll(illegalBooleanValues) { value =>
         val illegalRequestBody = JsObject(("isImportant", value)).toJson
         Put(isImportantUrl(uuid), illegalRequestBody) ~> authorizeWithSecret(secret) ~~> {
-          status shouldBe StatusCodes.UnprocessableEntity
+          status shouldBe StatusCodes.BadRequest
         }
       }
     }

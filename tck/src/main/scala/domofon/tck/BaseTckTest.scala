@@ -1,5 +1,7 @@
 package domofon.tck
 
+import java.time.LocalDate
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
@@ -34,9 +36,10 @@ trait BaseTckTest extends FunSpec with Matchers with ScalatestRouteTest with Adm
   def randomEmail = s"${List.fill(2)(randomString(2 + Random.nextInt(5))).mkString(".")}@${randomSentence(1)}.pl".toUpperCase
 
   def contactRequest(
-    name: String = randomSentence(2), category: EntityID = postCategoryRequest().id
+    name: String = randomSentence(2), category: EntityID = postCategoryRequest().id,
+    fromDate: Option[LocalDate] = None, tillDate: Option[LocalDate] = None
   ): PostContact = {
-    PostContact(name, category, randomEmail)
+    PostContact(name, category, randomEmail, fromDate = fromDate, tillDate = tillDate)
   }
 
   def categoryRequest(

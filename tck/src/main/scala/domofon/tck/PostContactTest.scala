@@ -27,14 +27,14 @@ trait PostContactTest extends BaseTckTest {
 
     it("Discards empty json object") {
       Post("/contacts", JsObject()) ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
       }
     }
 
     it("Discards json with illegal string values") {
       val validContactRequest = contactRequest().toJson.asJsObject
       val stringFields = Seq("name", "company", "notifyEmail", "phone", "adminEmail")
-      val illegalStringValues = Seq(JsNumber(42), JsString(""), JsBoolean(false), JsObject.empty)
+      val illegalStringValues = Seq(JsNumber(42), JsBoolean(false), JsObject.empty)
       val cartesianProduct = for {
         field <- stringFields
         value <- illegalStringValues
@@ -43,7 +43,7 @@ trait PostContactTest extends BaseTckTest {
       forAll(invalidParameters) { (field, value) =>
         val invalidContactRequest = JsObject(validContactRequest.fields.updated(field, value))
         Post("/contacts", invalidContactRequest.toJson) ~~> {
-          status shouldBe StatusCodes.UnprocessableEntity
+          status shouldBe StatusCodes.BadRequest
         }
       }
     }
@@ -53,19 +53,54 @@ trait PostContactTest extends BaseTckTest {
 
       val validContactRequest = contactRequest().toJson.asJsObject
       val values = Seq(
+        (JsString("2000.01.1"), JsString("2000-01")),
+        (JsString("02/29/2007"), JsNull)
+      )
+
+      val dateFields = Table(("fromDate", "tillDate"), values: _*)
+      forAll(dateFields) { (from, till) =>
+        val invalidContactRequest = JsObject(validContactRequest.fields ++ Map("fromDate" -> from, "tillDate" -> till))
+        Post("/contacts", invalidContactRequest.toJson) ~~> {
+          status shouldBe StatusCodes.BadRequest
+        }
+      }
+
+    }
+
+    it("Rejects when only one date is set or they don't respect relation (fromDate <= tillDate)") {
+      import DomofonMarshalling._
+
+      val validContactRequest = contactRequest().toJson.asJsObject
+      val values = Seq(
         (None, Some(LocalDate.now().toString)),
         (Some(LocalDate.now().toString), None),
         (Some("2012-12-12"), Some("2012-11-11"))
-      ).map(x => (x._1.toJson, x._2.toJson)) ++ Seq(
-          (JsString("2000.01.1"), JsString("2000-01")),
-          (JsString("02/29/2007"), JsNull)
-        )
+      ).map(x => (x._1.toJson, x._2.toJson))
 
       val dateFields = Table(("fromDate", "tillDate"), values: _*)
       forAll(dateFields) { (from, till) =>
         val invalidContactRequest = JsObject(validContactRequest.fields ++ Map("fromDate" -> from, "tillDate" -> till))
         Post("/contacts", invalidContactRequest.toJson) ~~> {
           status shouldBe StatusCodes.UnprocessableEntity
+        }
+      }
+
+    }
+
+    it("Validates it works for no dates, or when dates respect (fromDate <= tillDate)") {
+      import DomofonMarshalling._
+
+      val values = Seq[(Option[LocalDate], Option[LocalDate])](
+        (None, None),
+        (Some(LocalDate.now.plusDays(2)), Some(LocalDate.now.plusDays(2))),
+        (Some(LocalDate.now.plusDays(2)), Some(LocalDate.now.plusDays(3)))
+      )
+
+      val dateFields = Table(("fromDate", "tillDate"), values: _*)
+      forAll(dateFields) { (from, till) =>
+        val req = contactRequest(fromDate = from, tillDate = till)
+        Post("/contacts", req.toJson) ~~> {
+          status shouldBe StatusCodes.OK
         }
       }
 
@@ -112,7 +147,7 @@ trait PostContactTest extends BaseTckTest {
         val cr = contactRequest()
         val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post("/contacts", json) ~> acceptJson ~~> {
-          status shouldBe StatusCodes.UnprocessableEntity
+          status shouldBe StatusCodes.BadRequest
           responseAs[ValidationFieldsError].fields should contain(field)
         }
       }
@@ -122,7 +157,7 @@ trait PostContactTest extends BaseTckTest {
       val cr = contactRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
       Post("/contacts", json) ~> acceptJson ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
         val r = requiredFields -- responseAs[ValidationFieldsError].fields
         r shouldBe empty
       }
@@ -133,7 +168,7 @@ trait PostContactTest extends BaseTckTest {
         val cr = contactRequest()
         val json = JsObject(cr.toJson.asJsObject.fields - field)
         Post("/contacts", json) ~> acceptPlain ~~> {
-          status shouldBe StatusCodes.UnprocessableEntity
+          status shouldBe StatusCodes.BadRequest
           responseAs[String] should include(field)
         }
       }
@@ -143,7 +178,7 @@ trait PostContactTest extends BaseTckTest {
       val cr = contactRequest()
       val json = JsObject(cr.toJson.asJsObject.fields -- requiredFields)
       Post("/contacts", json) ~> acceptPlain ~~> {
-        status shouldBe StatusCodes.UnprocessableEntity
+        status shouldBe StatusCodes.BadRequest
         val r = responseAs[String]
         requiredFields.foreach {
           field =>

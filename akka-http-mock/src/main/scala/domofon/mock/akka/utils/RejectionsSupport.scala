@@ -19,7 +19,7 @@ object RejectionsSupport {
   val rejectionHandler: RejectionHandler = RejectionHandler.newBuilder().handle {
     case MissingRequiredFieldsRejection(message, fields) =>
       complete(
-        (StatusCodes.UnprocessableEntity, MissingFieldsError(message, fields))
+        (StatusCodes.BadRequest, MissingFieldsError(message, fields))
       )
     case TooManyRequestsRejection(msg, when) =>
       complete(

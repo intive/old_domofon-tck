@@ -8,11 +8,13 @@ import spray.json._
 
 trait DomofonMarshalling extends DefaultJsonProtocol {
 
-  implicit val localDateJsonFormat = lift(new JsonReader[LocalDate] {
+  implicit val localDateJsonFormat = new JsonFormat[LocalDate] {
     override def read(json: JsValue): LocalDate = (json: @unchecked) match {
       case JsString(s) => LocalDate.parse(s)
     }
-  })
+
+    override def write(obj: LocalDate): JsValue = JsString(obj.toString)
+  }
 
   implicit val localDateTimeJsonFormat = lift(new JsonReader[LocalDateTime] {
     override def read(json: JsValue): LocalDateTime = (json: @unchecked) match {
