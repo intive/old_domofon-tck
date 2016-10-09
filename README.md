@@ -1,5 +1,7 @@
 # domofon-tck
 
+[![Join the chat at https://gitter.im/blstream/domofon-tck](https://badges.gitter.im/blstream/domofon-tck.svg)](https://gitter.im/blstream/domofon-tck?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 To make your life easier we created few compliance tests which could be used with your own implementation of Domofon API.
  
 [![Build Status](https://travis-ci.org/blstream/domofon-tck.svg?branch=master)](https://travis-ci.org/blstream/domofon-tck)
